@@ -4006,21 +4006,6 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 }
 
 /**
- * Get the main network ID.
- *
- * @since 4.3.0
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @return int The ID of the main network.
- */
-function get_main_network_id() {
-	global $wpdb;
-
-	return 1;
-}
-
-/**
  * Determine whether global terms are enabled.
  *
  * @since 3.0.0
