@@ -1199,19 +1199,6 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 	echo '</ul>';
 }
 
-/**
- * Display file upload quota on dashboard.
- *
- * Runs on the activity_box_end hook in wp_dashboard_right_now().
- *
- * @since 3.0.0
- *
- * @return bool|null True if not multisite, user can't upload files, or the space check option is disabled.
- */
-function wp_dashboard_quota() {
-	return true;
-}
-
 // Display Browser Nag Meta Box
 function wp_dashboard_browser_nag() {
 	$notice = '';
