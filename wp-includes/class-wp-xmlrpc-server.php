@@ -181,9 +181,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return array|IXR_Error|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
-		if ( '_multisite_getUsersBlogs' === $name ) {
-			return call_user_func_array( array( $this, $name ), $arguments );
-		}
 		return false;
 	}
 
