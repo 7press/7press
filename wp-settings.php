@@ -202,7 +202,6 @@ unset( $mu_plugin );
  *
  * @since 2.8.0
  */
-do_action( 'muplugins_loaded' );
 
 wp_cookie_constants();
 
