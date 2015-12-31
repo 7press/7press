@@ -94,6 +94,7 @@ function setup_config_display_header( $body_classes = array() ) {
 <head>
 	<meta name="viewport" content="width=device-width" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'WordPress &rsaquo; Setup Configuration File' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
@@ -180,7 +181,7 @@ switch($step) {
 
 		setup_config_display_header();
 	?>
-<h1 class="screen-reader-text"><?php _e( 'Setup your database connection' ) ?></h1>
+<h1 class="screen-reader-text"><?php _e( 'Set up your database connection' ) ?></h1>
 <form method="post" action="setup-config.php?step=2">
 	<p><?php _e( 'Below you should enter your database connection details. If you&#8217;re not sure about these, contact your host.' ); ?></p>
 	<table class="form-table">

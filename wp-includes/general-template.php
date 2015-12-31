@@ -471,7 +471,7 @@ function wp_login_form( $args = array() ) {
 	$login_form_bottom = apply_filters( 'login_form_bottom', '', $args );
 
 	$form = '
-		<form name="' . $args['form_id'] . '" id="' . $args['form_id'] . '" action="' . esc_url( wp_login_url() ) . '" method="post">
+		<form name="' . $args['form_id'] . '" id="' . $args['form_id'] . '" action="' . esc_url( site_url( 'wp-login.php', 'login_post' ) ) . '" method="post">
 			' . $login_form_top . '
 			<p class="login-username">
 				<label for="' . esc_attr( $args['id_username'] ) . '">' . esc_html( $args['label_username'] ) . '</label>
@@ -1462,13 +1462,11 @@ function get_the_archive_description() {
  *
  * @since 1.0.0
  *
- * @todo Properly document optional arguments as such
- *
  * @param string $url    URL to archive.
  * @param string $text   Archive text description.
  * @param string $format Optional, default is 'html'. Can be 'link', 'option', 'html', or custom.
- * @param string $before Optional.
- * @param string $after  Optional.
+ * @param string $before Optional. Content to prepend to the description. Default empty.
+ * @param string $after  Optional. Content to append to the description. Default empty.
  * @return string HTML link content for archive.
  */
 function get_archives_link($url, $text, $format = 'html', $before = '', $after = '') {
@@ -2738,7 +2736,7 @@ function wp_default_editor() {
  * containing TinyMCE: 'edit_page_form', 'edit_form_advanced' and 'dbx_post_sidebar'.
  * See https://core.trac.wordpress.org/ticket/19173 for more information.
  *
- * @see wp-includes/class-wp-editor.php
+ * @see _WP_Editors::editor()
  * @since 3.3.0
  *
  * @param string $content   Initial content for the editor.
@@ -3080,15 +3078,20 @@ function paginate_links( $args = '' ) {
  *
  * @since 2.5.0
  *
- * @todo Properly document optional arguments as such
- *
  * @global array $_wp_admin_css_colors
  *
  * @param string $key    The unique key for this theme.
  * @param string $name   The name of the theme.
- * @param string $url    The url of the css file containing the colour scheme.
- * @param array  $colors Optional An array of CSS color definitions which are used to give the user a feel for the theme.
- * @param array  $icons  Optional An array of CSS color definitions used to color any SVG icons
+ * @param string $url    The URL of the CSS file containing the color scheme.
+ * @param array  $colors Optional. An array of CSS color definition strings which are used
+ *                       to give the user a feel for the theme.
+ * @param array  $icons {
+ *     Optional. CSS color definitions used to color any SVG icons.
+ *
+ *     @type string $base    SVG icon base color.
+ *     @type string $focus   SVG icon color on focus.
+ *     @type string $current SVG icon color of current admin menu link.
+ * }
  */
 function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
 	global $_wp_admin_css_colors;

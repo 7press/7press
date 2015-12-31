@@ -120,7 +120,7 @@ function wp_save_post_revision( $post_id ) {
 		 *
 		 * @param bool    $check_for_changes Whether to check for changes before saving a new revision.
 		 *                                   Default true.
-		 * @param WP_Post $last_revision     The the last revision post object.
+		 * @param WP_Post $last_revision     The last revision post object.
 		 * @param WP_Post $post              The post object.
 		 *
 		 */
@@ -411,7 +411,10 @@ function wp_delete_post_revision( $revision_id ) {
  *
  * @since 2.6.0
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global $post.
+ * @see get_children()
+ *
+ * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global `$post`.
+ * @param array|null  $args    Optional. Arguments for retrieving post revisions. Default null.
  * @return array An array of revisions, or an empty array if none.
  */
 function wp_get_post_revisions( $post_id = 0, $args = null ) {

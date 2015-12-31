@@ -417,7 +417,9 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 			$original_title = $original_object->post_title;
 		} elseif ( 'post_type_archive' == $args['menu-item-type'] ) {
 			$original_object = get_post_type_object( $args['menu-item-object'] );
-			$original_title = $original_object->labels->archives;
+			if ( $original_object ) {
+				$original_title = $original_object->labels->archives;
+			}
 		}
 
 		if ( $args['menu-item-title'] == $original_title )
@@ -928,13 +930,14 @@ function _wp_delete_post_menu_item( $object_id = 0 ) {
 }
 
 /**
- * Callback for handling a menu item when its original object is deleted.
+ * Serves as a callback for handling a menu item when its original object is deleted.
  *
  * @since 3.0.0
  * @access private
  *
- * @param int $object_id The ID of the original object being trashed.
- *
+ * @param int    $object_id Optional. The ID of the original object being trashed. Default 0.
+ * @param int    $tt_id     Term taxonomy ID. Unused.
+ * @param string $taxonomy  Taxonomy slug.
  */
 function _wp_delete_tax_menu_item( $object_id = 0, $tt_id, $taxonomy ) {
 	$object_id = (int) $object_id;

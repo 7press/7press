@@ -158,11 +158,11 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
  * @param string $html
  * @param integer $id
  * @param string $caption image caption
- * @param string $alt image alt attribute
  * @param string $title image title attribute
  * @param string $align image css alignment property
  * @param string $url image src url
  * @param string $size image size (thumbnail, medium, large, full or added with add_image_size() )
+ * @param string $alt image alt attribute
  * @return string
  */
 function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $alt = '' ) {
@@ -1455,7 +1455,7 @@ function get_media_item( $attachment_id, $args = null ) {
 			<td>
 			<p><strong>" . __('File name:') . "</strong> $filename</p>
 			<p><strong>" . __('File type:') . "</strong> $post->post_mime_type</p>
-			<p><strong>" . __('Upload date:') . "</strong> " . mysql2date( get_option('date_format'), $post->post_date ). '</p>';
+			<p><strong>" . __('Upload date:') . "</strong> " . mysql2date( __( 'F j, Y' ), $post->post_date ). '</p>';
 			if ( !empty( $media_dims ) )
 				$item .= "<p><strong>" . __('Dimensions:') . "</strong> $media_dims</p>\n";
 

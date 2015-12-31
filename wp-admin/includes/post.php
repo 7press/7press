@@ -687,7 +687,7 @@ function post_exists($title, $content = '', $date = '') {
 	}
 
 	if ( !empty ( $content ) ) {
-		$query .= 'AND post_content = %s';
+		$query .= ' AND post_content = %s';
 		$args[] = $post_content;
 	}
 
@@ -1008,16 +1008,12 @@ function wp_edit_posts_query( $q = false ) {
 		$orderby = $q['orderby'];
 	} elseif ( isset( $q['post_status'] ) && in_array( $q['post_status'], array( 'pending', 'draft' ) ) ) {
 		$orderby = 'modified';
-	} elseif ( ! is_post_type_hierarchical( $post_type ) ) {
-		$orderby = 'date';
 	}
 
 	if ( isset( $q['order'] ) ) {
 		$order = $q['order'];
 	} elseif ( isset( $q['post_status'] ) && 'pending' == $q['post_status'] ) {
 		$order = 'ASC';
-	} else {
-		$order = 'desc';
 	}
 
 	$per_page = "edit_{$post_type}_per_page";
@@ -1384,11 +1380,10 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 
 	$post               = get_post( $post );
 	$post_type_object   = get_post_type_object( $post->post_type );
-	$set_thumbnail_link = '<p class="hide-if-no-js"><a title="%s" href="%s" id="set-post-thumbnail" class="thickbox">%s</a></p>';
+	$set_thumbnail_link = '<p class="hide-if-no-js"><a href="%s" id="set-post-thumbnail" aria-describedby="set-post-thumbnail-desc" class="thickbox">%s</a></p>';
 	$upload_iframe_src  = get_upload_iframe_src( 'image', $post->ID );
 
 	$content = sprintf( $set_thumbnail_link,
-		esc_attr( $post_type_object->labels->set_featured_image ),
 		esc_url( $upload_iframe_src ),
 		esc_html( $post_type_object->labels->set_featured_image )
 	);
@@ -1420,10 +1415,10 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 		if ( !empty( $thumbnail_html ) ) {
 			$ajax_nonce = wp_create_nonce( 'set_post_thumbnail-' . $post->ID );
 			$content = sprintf( $set_thumbnail_link,
-				esc_attr( $post_type_object->labels->set_featured_image ),
 				esc_url( $upload_iframe_src ),
 				$thumbnail_html
 			);
+			$content .= '<p class="hide-if-no-js howto" id="set-post-thumbnail-desc">' . __( 'Click the image to edit or update' ) . '</p>';
 			$content .= '<p class="hide-if-no-js"><a href="#" id="remove-post-thumbnail" onclick="WPRemoveThumbnail(\'' . $ajax_nonce . '\');return false;">' . esc_html( $post_type_object->labels->remove_featured_image ) . '</a></p>';
 		}
 	}
@@ -1762,7 +1757,7 @@ function post_preview() {
  *
  * @param array $post_data Associative array of the submitted post data.
  * @return mixed The value 0 or WP_Error on failure. The saved post ID on success.
- *               Te ID can be the draft post_id or the autosave revision post_id.
+ *               The ID can be the draft post_id or the autosave revision post_id.
  */
 function wp_autosave( $post_data ) {
 	// Back-compat

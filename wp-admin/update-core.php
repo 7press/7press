@@ -303,14 +303,32 @@ function list_plugin_updates() {
 		}
 
 		$details_url = self_admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin_data->update->slug . '&section=changelog&TB_iframe=true&width=640&height=662');
-		$details_text = sprintf(__('View version %1$s details.'), $plugin_data->update->new_version);
-		$details = sprintf('<a href="%1$s" class="thickbox" title="%2$s">%3$s</a>', esc_url($details_url), esc_attr($plugin_data->Name), $details_text);
-
-		echo "
-	<tr>
-		<th scope='row' class='check-column'><input type='checkbox' name='checked[]' value='" . esc_attr($plugin_file) . "' /></th>
-		<td><p><strong>{$plugin_data->Name}</strong><br />" . sprintf(__('You have version %1$s installed. Update to %2$s.'), $plugin_data->Version, $plugin_data->update->new_version) . ' ' . $details . $compat . $upgrade_notice . "</p></td>
-	</tr>";
+		$details_name = sprintf( '<span class="screen-reader-text">%1$s</span>', esc_attr( $plugin_data->Name ) );
+		/* translators: 1: Plugin name 2: Plugin version */
+		$details_text = sprintf( __( 'View %1$s version %2$s details.' ), $details_name, $plugin_data->update->new_version );
+		$details = sprintf( '<a href="%1$s" class="thickbox">%2$s</a>', esc_url( $details_url ), $details_text );
+		$checkbox_id =  "checkbox_" . md5( $plugin_data->Name );
+		?>
+		<tr>
+			<th scope="row" class="check-column">
+				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text"><?php
+					/* translators: %s: plugin name */
+					printf( __( 'Select %s' ),
+						$plugin_data->Name
+					);
+				?></label>
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
+			</th>
+			<td><p><strong><?php echo $plugin_data->Name; ?></strong><br /><?php
+				/* translators: 1: plugin version, 2: new version */
+				printf( __( 'You have version %1$s installed. Update to %2$s.' ),
+					$plugin_data->Version,
+					$plugin_data->update->new_version
+				);
+				echo ' ' . $details . $compat . $upgrade_notice;
+			?></p></td>
+		</tr>
+		<?php
 	}
 ?>
 	</tbody>
@@ -357,11 +375,31 @@ function list_theme_updates() {
 	<tbody class="plugins">
 <?php
 	foreach ( $themes as $stylesheet => $theme ) {
-		echo "
-	<tr>
-		<th scope='row' class='check-column'><input type='checkbox' name='checked[]' value='" . esc_attr( $stylesheet ) . "' /></th>
-		<td class='plugin-title'><img src='" . esc_url( $theme->get_screenshot() ) . "' width='85' height='64' style='float:left; padding: 0 5px 5px' alt='' /><strong>" . $theme->display('Name') . '</strong> ' . sprintf( __( 'You have version %1$s installed. Update to %2$s.' ), $theme->display('Version'), $theme->update['new_version'] ) . "</td>
-	</tr>";
+		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
+		?>
+		<tr>
+			<th scope="row" class="check-column">
+				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text"><?php
+					/* translators: %s: theme name */
+					printf( __( 'Select %s' ),
+						$theme->display( 'Name' )
+					);
+				?></label>
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
+			</th>
+			<td class="plugin-title">
+				<img src="<?php echo esc_url( $theme->get_screenshot() ); ?>" width="85" height="64" style="float:left; padding: 0 5px 5px" alt="" />
+				<strong><?php echo $theme->display( 'Name' ); ?></strong>
+				<?php
+					/* translators: 1: theme version, 2: new version */
+					printf( __( 'You have version %1$s installed. Update to %2$s.' ),
+						$theme->display( 'Version' ),
+						$theme->update['new_version']
+					);
+				?>
+			</td>
+		</tr>
+		<?php
 	}
 ?>
 	</tbody>
@@ -574,7 +612,7 @@ if ( 'upgrade-core' == $action ) {
 
 	echo '<p>';
 	/* translators: %1 date, %2 time. */
-	printf( __('Last checked on %1$s at %2$s.'), date_i18n( get_option( 'date_format' ) ), date_i18n( get_option( 'time_format' ) ) );
+	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ) ), date_i18n( __( 'g:i a' ) ) );
 	echo ' &nbsp; <a class="button" href="' . esc_url( self_admin_url('update-core.php?force-check=1') ) . '">' . __( 'Check Again' ) . '</a>';
 	echo '</p>';
 
@@ -644,7 +682,7 @@ if ( 'upgrade-core' == $action ) {
 	require_once(ABSPATH . 'wp-admin/admin-header.php');
 	echo '<div class="wrap">';
 	echo '<h1>' . __( 'Update Plugins' ) . '</h1>';
-	echo '<iframe src="', $url, '" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0"></iframe>';
+	echo '<iframe src="', $url, '" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="' . esc_attr__( 'Update progress' ) . '"></iframe>';
 	echo '</div>';
 	include(ABSPATH . 'wp-admin/admin-footer.php');
 
@@ -673,7 +711,7 @@ if ( 'upgrade-core' == $action ) {
 	?>
 	<div class="wrap">
 		<h1><?php _e( 'Update Themes' ); ?></h1>
-		<iframe src="<?php echo $url ?>" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0"></iframe>
+		<iframe src="<?php echo $url ?>" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="<?php esc_attr_e( 'Update progress' ); ?>"></iframe>
 	</div>
 	<?php
 	include(ABSPATH . 'wp-admin/admin-footer.php');

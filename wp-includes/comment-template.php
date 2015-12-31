@@ -736,7 +736,7 @@ function get_comment_link( $comment = null, $args = array() ) {
 		}
 	}
 
-	if ( $cpage ) {
+	if ( $cpage && get_option( 'page_comments' ) ) {
 		if ( $wp_rewrite->using_permalinks() ) {
 			if ( $cpage ) {
 				$link = trailingslashit( $link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
@@ -1229,7 +1229,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  * default theme. If either does not exist, then the WordPress process will be
  * halted. It is advised for that reason, that the default theme is not deleted.
  *
- * @uses $withcomments Will not try to get the comments if the post has none.
+ * Will not try to get the comments if the post has none.
  *
  * @since 1.5.0
  *
@@ -1242,6 +1242,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  * @global int        $user_ID
  * @global string     $user_identity
  * @global bool       $overridden_cpage
+ * @global bool       $withcomments 
  *
  * @param string $file              Optional. The file to load. Default '/comments.php'.
  * @param bool   $separate_comments Optional. Whether to separate the comments by comment type.
@@ -1313,12 +1314,19 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		} else {
 			// If fetching the first page of 'newest', we need a top-level comment count.
 			$top_level_query = new WP_Comment_Query();
-			$top_level_count = $top_level_query->query( array(
+			$top_level_args  = array(
 				'count'   => true,
 				'orderby' => false,
 				'post_id' => $post->ID,
 				'parent'  => 0,
-			) );
+				'status'  => 'approve',
+			);
+
+			if ( isset( $comment_args['include_unapproved'] ) ) {
+				$top_level_args['include_unapproved'] = $comment_args['include_unapproved'];
+			}
+
+			$top_level_count = $top_level_query->query( $top_level_args );
 
 			$comment_args['offset'] = ( ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
 		}
@@ -1330,11 +1338,16 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	// Trees must be flattened before they're passed to the walker.
 	$comments_flat = array();
 	foreach ( $_comments as $_comment ) {
-		$comments_flat = array_merge( $comments_flat, array( $_comment ), $_comment->get_children( array(
+		$comments_flat[]  = $_comment;
+		$comment_children = $_comment->get_children( array(
 			'format' => 'flat',
 			'status' => $comment_args['status'],
 			'orderby' => $comment_args['orderby']
-		) ) );
+		) );
+
+		foreach ( $comment_children as $comment_child ) {
+			$comments_flat[] = $comment_child;
+		}
 	}
 
 	/**
@@ -1388,45 +1401,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 }
 
 /**
- * Display the JS popup script to show a comment.
- *
- * If the $file parameter is empty, then the home page is assumed. The defaults
- * for the window are 400px by 400px.
- *
- * For the comment link popup to work, this function has to be called or the
- * normal comment link will be assumed.
- *
- * @global string $wpcommentspopupfile  The URL to use for the popup window.
- * @global int    $wpcommentsjavascript Whether to use JavaScript. Set when function is called.
- *
- * @since 0.71
- *
- * @param int $width  Optional. The width of the popup window. Default 400.
- * @param int $height Optional. The height of the popup window. Default 400.
- * @param string $file Optional. Sets the location of the popup window.
- */
-function comments_popup_script( $width = 400, $height = 400, $file = '' ) {
-	global $wpcommentspopupfile, $wpcommentsjavascript;
-
-	if (empty ($file)) {
-		$wpcommentspopupfile = '';  // Use the index.
-	} else {
-		$wpcommentspopupfile = $file;
-	}
-
-	$wpcommentsjavascript = 1;
-	$javascript = "<script type='text/javascript'>\nfunction wpopen (macagna) {\n    window.open(macagna, '_blank', 'width=$width,height=$height,scrollbars=yes,status=yes');\n}\n</script>\n";
-	echo $javascript;
-}
-
-/**
- * Displays the link to the comments popup window for the current post ID.
- *
- * Is not meant to be displayed on single posts and pages. Should be used
- * on the lists of posts
- *
- * @global string $wpcommentspopupfile  The URL to use for the popup window.
- * @global int    $wpcommentsjavascript Whether to use JavaScript. Set when function is called.
+ * Displays the link to the comments for the current post ID.
  *
  * @since 0.71
  *
@@ -1440,8 +1415,6 @@ function comments_popup_script( $width = 400, $height = 400, $file = '' ) {
  *                          Default false.
  */
 function comments_popup_link( $zero = false, $one = false, $more = false, $css_class = '', $none = false ) {
-	global $wpcommentspopupfile, $wpcommentsjavascript;
-
 	$id = get_the_ID();
 	$title = get_the_title();
 	$number = get_comments_number( $id );
@@ -1478,31 +1451,21 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 	}
 
 	echo '<a href="';
-	if ( $wpcommentsjavascript ) {
-		if ( empty( $wpcommentspopupfile ) )
-			$home = home_url();
-		else
-			$home = get_option('siteurl');
-		echo $home . '/' . $wpcommentspopupfile . '?comments_popup=' . $id;
-		echo '" onclick="wpopen(this.href); return false"';
+	if ( 0 == $number ) {
+		$respond_link = get_permalink() . '#respond';
+		/**
+		 * Filter the respond link when a post has no comments.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @param string $respond_link The default response link.
+		 * @param integer $id The post ID.
+		 */
+		echo apply_filters( 'respond_link', $respond_link, $id );
 	} else {
-		// if comments_popup_script() is not in the template, display simple comment link
-		if ( 0 == $number ) {
-			$respond_link = get_permalink() . '#respond';
-			/**
-			 * Filter the respond link when a post has no comments.
-			 *
-			 * @since 4.4.0
-			 *
-			 * @param string $respond_link The default response link.
-			 * @param integer $id The post ID.
-			 */
-			echo apply_filters( 'respond_link', $respond_link, $id );
-		} else {
-			comments_link();
-		}
-		echo '"';
+		comments_link();
 	}
+	echo '"';
 
 	if ( !empty( $css_class ) ) {
 		echo ' class="'.$css_class.'" ';
@@ -1510,11 +1473,11 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 
 	$attributes = '';
 	/**
-	 * Filter the comments popup link attributes for display.
+	 * Filter the comments link attributes for display.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $attributes The comments popup link attributes. Default empty.
+	 * @param string $attributes The comments link attributes. Default empty.
 	 */
 	echo apply_filters( 'comments_popup_link_attributes', $attributes );
 
@@ -2219,7 +2182,7 @@ function comment_form( $args = array(), $post_id = null ) {
 					$comment_fields = array( 'comment' => $args['comment_field'] ) + (array) $args['fields'];
 
 					/**
-					 * Filter the comment form fields.
+					 * Filter the comment form fields, including the textarea.
 					 *
 					 * @since 4.4.0
 					 *

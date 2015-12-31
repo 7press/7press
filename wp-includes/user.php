@@ -278,7 +278,7 @@ function wp_validate_logged_in_cookie( $user_id ) {
  * @param int          $userid      User ID.
  * @param array|string $post_type   Optional. Single post type or array of post types to count the number of posts for. Default 'post'.
  * @param bool         $public_only Optional. Whether to only return counts for public posts. Default false.
- * @return int Number of posts the user has written in this post type.
+ * @return string Number of posts the user has written in this post type.
  */
 function count_user_posts( $userid, $post_type = 'post', $public_only = false ) {
 	global $wpdb;
@@ -870,6 +870,7 @@ function setup_userdata($for_user_id = '') {
  * The available arguments are as follows:
  *
  * @since 2.3.0
+ * @since 4.5.0 Added the 'display_name_with_login' value for 'show'.
  *
  * @global int  $blog_id
  *
@@ -896,9 +897,11 @@ function setup_userdata($for_user_id = '') {
  *                                                 Default empty.
  *     @type bool|int     $multi                   Whether to skip the ID attribute on the 'select' element.
  *                                                 Accepts 1|true or 0|false. Default 0|false.
- *     @type string       $show                    User table column to display. If the selected item is empty
+ *     @type string       $show                    User data to display. If the selected item is empty
  *                                                 then the 'user_login' will be displayed in parentheses.
- *                                                 Accepts user fields. Default 'display_name'.
+ *                                                 Accepts any user field, or 'display_name_with_login' to show
+ *                                                 the display name with user_login in parentheses.
+ *                                                 Default 'display_name'.
  *     @type int|bool     $echo                    Whether to echo or return the drop-down. Accepts 1|true (echo)
  *                                                 or 0|false (return). Default 1|true.
  *     @type int          $selected                Which user ID should be selected. Default 0.
@@ -927,13 +930,23 @@ function wp_dropdown_users( $args = '' ) {
 	$defaults['selected'] = is_author() ? get_query_var( 'author' ) : 0;
 
 	$r = wp_parse_args( $args, $defaults );
-	$show = $r['show'];
+
+	$query_args = wp_array_slice_assoc( $r, array( 'blog_id', 'include', 'exclude', 'orderby', 'order', 'who' ) );
+
+	$fields = array( 'ID', 'user_login' );
+
+	$show = ! empty( $r['show'] ) ? $r['show'] : 'display_name';
+	if ( 'display_name_with_login' === $show ) {
+		$fields[] = 'display_name';
+	} else {
+		$fields[] = $show;
+	}
+
+	$query_args['fields'] = $fields;
+
 	$show_option_all = $r['show_option_all'];
 	$show_option_none = $r['show_option_none'];
 	$option_none_value = $r['option_none_value'];
-
-	$query_args = wp_array_slice_assoc( $r, array( 'blog_id', 'include', 'exclude', 'orderby', 'order', 'who' ) );
-	$query_args['fields'] = array( 'ID', 'user_login', $show );
 
 	/**
 	 * Filter the query arguments for the user drop-down.
@@ -966,21 +979,32 @@ function wp_dropdown_users( $args = '' ) {
 			$output .= "\t<option value='" . esc_attr( $option_none_value ) . "'$_selected>$show_option_none</option>\n";
 		}
 
-		$found_selected = false;
-		foreach ( (array) $users as $user ) {
-			$user->ID = (int) $user->ID;
-			$_selected = selected( $user->ID, $r['selected'], false );
-			if ( $_selected ) {
-				$found_selected = true;
+		if ( $r['include_selected'] && ( $r['selected'] > 0 ) ) {
+			$found_selected = false;
+			$r['selected'] = (int) $r['selected'];
+			foreach ( (array) $users as $user ) {
+				$user->ID = (int) $user->ID;
+				if ( $user->ID === $r['selected'] ) {
+					$found_selected = true;
+				}
 			}
-			$display = ! empty( $user->$show ) ? $user->$show : '('. $user->user_login . ')';
-			$output .= "\t<option value='$user->ID'$_selected>" . esc_html( $display ) . "</option>\n";
+
+			if ( ! $found_selected ) {
+				$users[] = get_userdata( $r['selected'] );
+			}
 		}
 
-		if ( $r['include_selected'] && ! $found_selected && ( $r['selected'] > 0 ) ) {
-			$user = get_userdata( $r['selected'] );
+		foreach ( (array) $users as $user ) {
+			if ( 'display_name_with_login' === $show ) {
+				/* translators: 1: display name, 2: user_login */
+				$display = sprintf( _x( '%1$s (%2$s)', 'user dropdown' ), $user->display_name, $user->user_login );
+			} elseif ( ! empty( $user->$show ) ) {
+				$display = $user->$show;
+			} else {
+				$display = '(' . $user->user_login . ')';
+			}
+
 			$_selected = selected( $user->ID, $r['selected'], false );
-			$display = ! empty( $user->$show ) ? $user->$show : '('. $user->user_login . ')';
 			$output .= "\t<option value='$user->ID'$_selected>" . esc_html( $display ) . "</option>\n";
 		}
 
@@ -1242,9 +1266,9 @@ function validate_username( $username ) {
  *     @type string      $user_url             The user URL.
  *     @type string      $user_email           The user email address.
  *     @type string      $display_name         The user's display name.
- *                                             Default is the the user's username.
+ *                                             Default is the user's username.
  *     @type string      $nickname             The user's nickname.
- *                                             Default is the the user's username.
+ *                                             Default is the user's username.
  *     @type string      $first_name           The user's first name. For new users, will be used
  *                                             to build the first part of the user's display name
  *                                             if `$display_name` is not specified.
@@ -1517,7 +1541,7 @@ function wp_insert_user( $userdata ) {
  	 * @param array $meta {
  	 *     Default meta values and keys for the user.
  	 *
- 	 *     @type string   $nickname             The user's nickname. Default is the the user's username.
+ 	 *     @type string   $nickname             The user's nickname. Default is the user's username.
 	 *     @type string   $first_name           The user's first name.
 	 *     @type string   $last_name            The user's last name.
 	 *     @type string   $description          The user's description.
@@ -1873,8 +1897,13 @@ function wp_get_user_contact_methods( $user = null ) {
 /**
  * The old private function for setting up user contact methods.
  *
+ * Use wp_get_user_contact_methods() instead.
+ *
  * @since 2.9.0
  * @access private
+ *
+ * @param WP_User $user Optional. WP_User object. Default null.
+ * @return array Array of contact methods and their labels.
  */
 function _wp_get_user_contactmethods( $user = null ) {
 	return wp_get_user_contact_methods( $user );
@@ -1939,7 +1968,7 @@ function get_password_reset_key( $user ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param bool true           Whether to allow the password to be reset. Default true.
+	 * @param bool $allow         Whether to allow the password to be reset. Default true.
 	 * @param int  $user_data->ID The ID of the user attempting to reset a password.
 	 */
 	$allow = apply_filters( 'allow_password_reset', true, $user->ID );
@@ -2029,6 +2058,10 @@ function check_password_reset_key($key, $login) {
 	} else {
 		$pass_key = $row->user_activation_key;
 		$expiration_time = false;
+	}
+
+	if ( ! $pass_key ) {
+		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
 	}
 
 	$hash_is_correct = $wp_hasher->CheckPassword( $key, $pass_key );

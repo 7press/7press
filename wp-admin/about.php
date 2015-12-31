@@ -21,6 +21,12 @@ if ( current_user_can( 'install_plugins' ) ) {
 	wp_enqueue_script( 'plugin-install' );
 }
 
+$video_url = 'https://videopress.com/embed/J44FHXvg?hd=true';
+$locale    = str_replace( '_', '-', get_locale() );
+list( $locale ) = explode( '-', $locale );
+if ( 'en' !== $locale ) {
+	$video_url = add_query_arg( 'defaultLangCode', $locale, $video_url );
+}
 
 wp_oembed_add_host_js();
 
@@ -33,7 +39,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 	<div class="wrap about-wrap">
 		<h1><?php printf( __( 'Welcome to WordPress&nbsp;%s' ), $display_version ); ?></h1>
 
-		<div class="about-text"><?php printf( __( 'Thank you for updating! WordPress %s makes it even easier to format your content and customize your site.' ), $display_version ); ?></div>
+		<div class="about-text"><?php printf( __( 'Thank you for updating! WordPress %s makes your site more connected and responsive.' ), $display_version ); ?></div>
 		<div class="wp-badge"><?php printf( __( 'Version %s' ), $display_version ); ?></div>
 
 		<h2 class="nav-tab-wrapper">
@@ -42,10 +48,17 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 			<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
 		</h2>
 
+		<div class="headline-feature feature-video">
+			<iframe width="1050" height="591" src="<?php echo esc_url( $video_url ); ?>" frameborder="0" allowfullscreen></iframe>
+			<script src="https://videopress.com/videopress-iframe.js"></script>
+		</div>
+
+		<hr>
+
 		<div class="headline-feature feature-section one-col">
 			<h2><?php _e( 'Twenty Sixteen' ); ?></h2>
 			<div class="media-container">
-				<img src="https://cldup.com/K6k4JfS2nW.png" alt="" />
+				<img src="https://s.w.org/images/core/4.4/twenty-sixteen-white-fullsize-2x.png" alt="" srcset="https://s.w.org/images/core/4.4/twenty-sixteen-white-smartphone-1x.png 268w, https://s.w.org/images/core/4.4/twenty-sixteen-white-smartphone-2x.png 536w, https://s.w.org/images/core/4.4/twenty-sixteen-white-tablet-1x.png 558w, https://s.w.org/images/core/4.4/twenty-sixteen-white-desktop-1x.png 840w, https://s.w.org/images/core/4.4/twenty-sixteen-white-fullsize-1x.png 1086w, https://s.w.org/images/core/4.4/twenty-sixteen-white-tablet-2x.png 1116w, https://s.w.org/images/core/4.4/twenty-sixteen-white-desktop-2x.png 1680w, https://s.w.org/images/core/4.4/twenty-sixteen-white-fullsize-2x.png 2172w" sizes="(max-width: 500px) calc((100vw - 40px) * .8), (max-width: 782px) calc((100vw - 70px) * .8), (max-width: 960px) calc((100vw - 116px) * .8), (max-width: 1290px) calc((100vw - 240px) * .8), 840px" />
 			</div>
 			<div class="two-col">
 				<div class="col">
@@ -54,12 +67,12 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 					<p><?php _e( 'Twenty Sixteen was built to look great on any device. A fluid grid design, flexible header, fun color schemes, and more, will make your content shine.' ); ?></p>
 					<div class="horizontal-image">
 						<div class="content">
-							<img class="feature-image horizontal-screen" src="https://cldup.com/J-zxmMqkXs.png" alt="" />
+							<img class="feature-image horizontal-screen" src="https://s.w.org/images/core/4.4/twenty-sixteen-dark-fullsize-2x.png" alt=""  srcset="https://s.w.org/images/core/4.4/twenty-sixteen-dark-smartphone-1x.png 268w, https://s.w.org/images/core/4.4/twenty-sixteen-dark-smartphone-2x.png 535w, https://s.w.org/images/core/4.4/twenty-sixteen-dark-desktop-1x.png 558w, https://s.w.org/images/core/4.4/twenty-sixteen-dark-fullsize-1x.png 783w, https://s.w.org/images/core/4.4/twenty-sixteen-dark-desktop-2x.png 1116w, https://s.w.org/images/core/4.4/twenty-sixteen-dark-fullsize-2x.png 1566w" sizes="(max-width: 500px) calc((100vw - 40px) * .8), (max-width: 782px) calc((100vw - 70px) * .8), (max-width: 960px) calc((100vw - 116px) * .5216), (max-width: 1290px) calc((100vw - 240px) * .5216), 548px" />
 						</div>
 					</div>
 				</div>
 				<div class="col feature-image">
-					<img class="vertical-screen" src="https://cldup.com/M8i_6X5LUL.png" alt="" />
+					<img class="vertical-screen" src="https://s.w.org/images/core/4.4/twenty-sixteen-red-fullsize-2x.png" alt="" srcset="https://s.w.org/images/core/4.4/twenty-sixteen-red-smartphone-1x.png 107w, https://s.w.org/images/core/4.4/twenty-sixteen-red-smartphone-2x.png 214w, https://s.w.org/images/core/4.4/twenty-sixteen-red-desktop-1x.png 252w, https://s.w.org/images/core/4.4/twenty-sixteen-red-fullsize-1x.png 410w, https://s.w.org/images/core/4.4/twenty-sixteen-red-desktop-2x.png 504w, https://s.w.org/images/core/4.4/twenty-sixteen-red-fullsize-2x.png 820w" sizes="(max-width: 500px) calc((100vw - 40px) * .32), (max-width: 782px) calc((100vw - 70px) * .32), (max-width: 960px) calc((100vw - 116px) * .24), (max-width: 1290px) calc((100vw - 240px) * .24), 252px" />
 				</div>
 			</div>
 		</div>
@@ -69,7 +82,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 		<div class="feature-section two-col">
 			<div class="col">
 				<div class="media-container">
-					<img src="https://cldup.com/av6MH44-Au.png" alt="" />
+					<img src="https://s.w.org/images/core/4.4/responsive-devices-fullsize-2x.png" alt="" srcset="https://s.w.org/images/core/4.4/responsive-devices-smartphone-1x.png 335w, https://s.w.org/images/core/4.4/responsive-devices-desktop-1x.png 500w, https://s.w.org/images/core/4.4/responsive-devices-smartphone-2x.png 670w, https://s.w.org/images/core/4.4/responsive-devices-tablet-1x.png 698w, https://s.w.org/images/core/4.4/responsive-devices-desktop-2x.png 1000w, https://s.w.org/images/core/4.4/responsive-devices-fullsize-1x.png 1200w, https://s.w.org/images/core/4.4/responsive-devices-tablet-2x.png 1396w, https://s.w.org/images/core/4.4/responsive-devices-fullsize-2x.png 2400w" sizes="(max-width: 500px) calc(100vw - 40px), (max-width: 782px) calc(100vw - 70px), (max-width: 960px) calc((100vw - 116px) * .476), (max-width: 1290px) calc((100vw - 240px) * .476), 500px" />
 				</div>
 			</div>
 			<div class="col">
@@ -83,15 +96,24 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 		<div class="feature-section two-col">
 			<div class="col">
 				<div class="embed-container">
-					<?php echo wp_oembed_get( 'https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/' ); ?>
+					<blockquote data-secret="OcUe7B6Edh" class="wp-embedded-content"><a href="https://wordpress.org/news/2015/12/clifford/">WordPress 4.4 &ldquo;Clifford&rdquo;</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="display:none;" src="https://wordpress.org/news/2015/12/clifford/embed/#?secret=OcUe7B6Edh" data-secret="OcUe7B6Edh" width="600" height="338" title="<?php esc_attr_e( 'Embedded WordPress Post' ); ?>" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
 				</div>
+			</div>
+			<div class="col">
 				<h3><?php _e( 'Embed your WordPress content' ); ?></h3>
 				<p><?php _e( 'Now you can embed your posts on other sites, even other WordPress sites. Simply drop a post URL into the editor and see an instant embed preview, complete with the title, excerpt, and featured image if you&#8217;ve set one. We&#8217;ll even include your site icon and links for comments and sharing.' ); ?></p>
 			</div>
+		</div>
+
+		<hr />
+
+		<div class="feature-section two-col">
 			<div class="col">
-				<div class="embed-container">
-					<?php echo wp_oembed_get( '' ); ?>
+				<div class="embed-container embed-reverbnation">
+					<iframe width="640" height="150" scrolling="no" frameborder="no" src="https://www.reverbnation.com/widget_code/html_widget/artist_607?widget_id=55&amp;pwc[song_ids]=3731874&amp;pwc[size]=small"></iframe>
 				</div>
+			</div>
+			<div class="col">
 				<h3><?php _e( 'Even more embed providers' ); ?></h3>
 				<p><?php _e( 'In addition to post embeds, WordPress 4.4 also adds support for five new oEmbed providers: Cloudup, Reddit&nbsp;Comments, ReverbNation, Speaker&nbsp;Deck, and VideoPress.' ); ?></p>
 			</div>

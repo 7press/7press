@@ -188,6 +188,9 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
+	 * Serves the XML-RPC request.
+	 *
+	 * @since 2.9.0
 	 * @access public
 	 */
 	public function serve_request() {
@@ -4327,11 +4330,18 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Private function for retrieving a users blogs for multisite setups
 	 *
+	 * @since 3.0.0
 	 * @access protected
 	 *
+	 * @param array $args {
+	 *     Method arguments. Note: arguments must be ordered as documented.
+	 *
+	 *     @type string $username Username.
+	 *     @type string $password Password.
+	 * }
 	 * @return array|IXR_Error
 	 */
-	protected function _multisite_getUsersBlogs($args) {
+	protected function _multisite_getUsersBlogs( $args ) {
 		$current_blog = get_blog_details();
 
 		$domain = $current_blog->domain;
@@ -4520,7 +4530,9 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 1.5.0
 	 * @deprecated 3.5.0
-	 * @return IXR_Error
+	 *
+	 * @param array $args Unused.
+	 * @return IXR_Error Error object.
 	 */
 	public function blogger_getTemplate($args) {
 		return new IXR_Error( 403, __('Sorry, that file cannot be edited.' ) );
@@ -4531,18 +4543,20 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 1.5.0
 	 * @deprecated 3.5.0
-	 * @return IXR_Error
+	 *
+	 * @param array $args Unused.
+	 * @return IXR_Error Error object.
 	 */
 	public function blogger_setTemplate($args) {
 		return new IXR_Error( 403, __('Sorry, that file cannot be edited.' ) );
 	}
 
 	/**
-	 * Create new post.
+	 * Creates new post.
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param array  $args {
+	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
 	 *     @type string $appkey (unused)
@@ -5065,8 +5079,12 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
-	 * @param integer $post_ID
-	 * @param array   $enclosure
+	 * Adds an enclosure to a post if it's new.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param integer $post_ID   Post ID.
+	 * @param array   $enclosure Enclosure data.
 	 */
 	public function add_enclosure_if_new( $post_ID, $enclosure ) {
 		if ( is_array( $enclosure ) && isset( $enclosure['url'] ) && isset( $enclosure['length'] ) && isset( $enclosure['type'] ) ) {
@@ -6399,9 +6417,13 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
-	 * @param integer $code
-	 * @param string $message
-	 * @return IXR_Error
+	 * Sends a pingback error based on the given error code and message.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param int    $code    Error code.
+	 * @param string $message Error message.
+	 * @return IXR_Error Error object.
 	 */
 	protected function pingback_error( $code, $message ) {
 		/**

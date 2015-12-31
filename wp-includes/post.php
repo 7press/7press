@@ -110,42 +110,42 @@ function create_initial_post_types() {
 	) );
 
 	register_post_status( 'publish', array(
-		'label'       => _x( 'Published', 'post' ),
+		'label'       => _x( 'Published', 'post status' ),
 		'public'      => true,
 		'_builtin'    => true, /* internal use only. */
 		'label_count' => _n_noop( 'Published <span class="count">(%s)</span>', 'Published <span class="count">(%s)</span>' ),
 	) );
 
 	register_post_status( 'future', array(
-		'label'       => _x( 'Scheduled', 'post' ),
+		'label'       => _x( 'Scheduled', 'post status' ),
 		'protected'   => true,
 		'_builtin'    => true, /* internal use only. */
 		'label_count' => _n_noop('Scheduled <span class="count">(%s)</span>', 'Scheduled <span class="count">(%s)</span>' ),
 	) );
 
 	register_post_status( 'draft', array(
-		'label'       => _x( 'Draft', 'post' ),
+		'label'       => _x( 'Draft', 'post status' ),
 		'protected'   => true,
 		'_builtin'    => true, /* internal use only. */
 		'label_count' => _n_noop( 'Draft <span class="count">(%s)</span>', 'Drafts <span class="count">(%s)</span>' ),
 	) );
 
 	register_post_status( 'pending', array(
-		'label'       => _x( 'Pending', 'post' ),
+		'label'       => _x( 'Pending', 'post status' ),
 		'protected'   => true,
 		'_builtin'    => true, /* internal use only. */
 		'label_count' => _n_noop( 'Pending <span class="count">(%s)</span>', 'Pending <span class="count">(%s)</span>' ),
 	) );
 
 	register_post_status( 'private', array(
-		'label'       => _x( 'Private', 'post' ),
+		'label'       => _x( 'Private', 'post status' ),
 		'private'     => true,
 		'_builtin'    => true, /* internal use only. */
 		'label_count' => _n_noop( 'Private <span class="count">(%s)</span>', 'Private <span class="count">(%s)</span>' ),
 	) );
 
 	register_post_status( 'trash', array(
-		'label'       => _x( 'Trash', 'post' ),
+		'label'       => _x( 'Trash', 'post status' ),
 		'internal'    => true,
 		'_builtin'    => true, /* internal use only. */
 		'label_count' => _n_noop( 'Trash <span class="count">(%s)</span>', 'Trash <span class="count">(%s)</span>' ),
@@ -864,7 +864,7 @@ function get_post_type_object( $post_type ) {
  *                               or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one
  *                               element from the array needs to match; 'and' means all elements
- *                               must match. Accepts 'or' or 'and'. Default 'and'.
+ *                               must match; 'not' means no elements may match. Default 'and'.
  * @return array A list of post type names or objects.
  */
 function get_post_types( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -1327,7 +1327,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - not_found - Default is No posts found/No pages found.
  * - not_found_in_trash - Default is No posts found in Trash/No pages found in Trash.
  * - parent_item_colon - This string isn't used on non-hierarchical types. In hierarchical
- *                       ones the default is 'Parent Page:'.
+ * ones the default is 'Parent Page:'.
  * - all_items - String for the submenu. Default is All Posts/All Pages.
  * - archives - String for use with archives in nav menus. Default is Post Archives/Page Archives.
  * - insert_into_item - String for the media frame button. Default is Insert into post/Insert into page.
@@ -2405,8 +2405,9 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 		// Point children of this page to its parent, also clean the cache of affected children.
 		$children_query = $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", $postid, $post->post_type );
 		$children = $wpdb->get_results( $children_query );
-
-		$wpdb->update( $wpdb->posts, $parent_data, $parent_where + array( 'post_type' => $post->post_type ) );
+		if ( $children ) {
+			$wpdb->update( $wpdb->posts, $parent_data, $parent_where + array( 'post_type' => $post->post_type ) );
+		}
 	}
 
 	// Do raw query. wp_get_post_revisions() is filtered.
@@ -2872,7 +2873,8 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type string $ping_status           Whether the post can accept pings. Accepts 'open' or 'closed'.
  *                                         Default is the value of 'default_ping_status' option.
  *     @type string $post_password         The password to access the post. Default empty.
- *     @type string $post_name             The post name. Default is the sanitized post title.
+ *     @type string $post_name             The post name. Default is the sanitized post title
+ *                                         when creating a new post.
  *     @type string $to_ping               Space or carriage return-separated list of URLs to ping.
  *                                         Default empty.
  *     @type string $pinged                Space or carriage return-separated list of URLs that have
@@ -2953,6 +2955,9 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$post_excerpt = $postarr['post_excerpt'];
 	if ( isset( $postarr['post_name'] ) ) {
 		$post_name = $postarr['post_name'];
+	} elseif ( $update ) {
+		// For an update, don't modify the post_name if it wasn't supplied as an argument.
+		$post_name = $post_before->post_name;
 	}
 
 	$maybe_empty = 'attachment' !== $post_type
@@ -4117,6 +4122,11 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		if ( $page->post_name == $revparts[0] ) {
 			$count = 0;
 			$p = $page;
+
+			/*
+			 * Loop through the given path parts from right to left,
+			 * ensuring each matches the post ancestry.
+			 */
 			while ( $p->post_parent != 0 && isset( $pages[ $p->post_parent ] ) ) {
 				$count++;
 				$parent = $pages[ $p->post_parent ];
@@ -4258,8 +4268,8 @@ function get_page_hierarchy( &$pages, $page_id = 0 ) {
  * @see _page_traverse_name()
  *
  * @param int   $page_id   Page ID.
- * @param array &$children Parent-children relations, passed by reference.
- * @param array &$result   Result, passed by reference.
+ * @param array $children  Parent-children relations, passed by reference.
+ * @param array $result    Result, passed by reference.
  */
 function _page_traverse_name( $page_id, &$children, &$result ){
 	if ( isset( $children[ $page_id ] ) ){
@@ -4290,7 +4300,7 @@ function get_page_uri( $page ) {
 
 	foreach ( $page->ancestors as $parent ) {
 		$parent = get_post( $parent );
-		if ( 'publish' === $parent->post_status ) {
+		if ( $parent ) {
 			$uri = $parent->post_name . '/' . $uri;
 		}
 	}
@@ -4869,7 +4879,8 @@ function wp_get_attachment_url( $post_id = 0 ) {
 				// Replace file location with url location.
 				$url = str_replace($uploads['basedir'], $uploads['baseurl'], $file);
 			} elseif ( false !== strpos($file, 'wp-content/uploads') ) {
-				$url = $uploads['baseurl'] . substr( $file, strpos($file, 'wp-content/uploads') + 18 );
+				// Get the directory name relative to the basedir (back compat for pre-2.7 uploads)
+				$url = trailingslashit( $uploads['baseurl'] . '/' . _wp_get_attachment_relative_path( $file ) ) . basename( $file );
 			} else {
 				// It's a newly-uploaded file, therefore $file is relative to the basedir.
 				$url = $uploads['baseurl'] . "/$file";

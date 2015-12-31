@@ -293,7 +293,7 @@ function wp_dashboard_right_now() {
 	update_right_now_message();
 
 	// Check if search engines are asked not to index this site.
-	if ( ! is_network_admin() && ! is_user_admin() && current_user_can( 'manage_options' ) && '1' != get_option( 'blog_public' ) ) {
+	if ( ! is_network_admin() && ! is_user_admin() && current_user_can( 'manage_options' ) && '0' == get_option( 'blog_public' ) ) {
 
 		/**
 		 * Filter the link title attribute for the 'Search Engines Discouraged'
@@ -550,7 +550,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 		$title = _draft_or_post_title( $draft->ID );
 		echo "<li>\n";
 		echo '<div class="draft-title"><a href="' . esc_url( $url ) . '" title="' . esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ) . '">' . esc_html( $title ) . '</a>';
-		echo '<time datetime="' . get_the_time( 'c', $draft ) . '">' . get_the_time( get_option( 'date_format' ), $draft ) . '</time></div>';
+		echo '<time datetime="' . get_the_time( 'c', $draft ) . '">' . get_the_time( __( 'F j, Y' ), $draft ) . '</time></div>';
 		if ( $the_content = wp_trim_words( $draft->post_content, 10 ) ) {
 			echo '<p>' . $the_content . '</p>';
  		}
@@ -610,7 +610,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		}
 
 		if ( '1' === $comment->comment_approved ) {
-			$actions['view'] = '<a class="comment-link" href="' . esc_url( get_comment_link( $comment ) ) . '">' . _x( 'View', 'verb' ) . '</a>';
+			$actions['view'] = '<a class="comment-link" href="' . esc_url( get_comment_link( $comment ) ) . '">' . __( 'View' ) . '</a>';
 		}
 
 		/**
@@ -1207,7 +1207,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
  * @since 3.0.0
  *
  * @return bool|null True if not multisite, user can't upload files, or the space check option is disabled.
-*/
+ */
 function wp_dashboard_quota() {
 	if ( !is_multisite() || !current_user_can( 'upload_files' ) || get_site_option( 'upload_space_check_disabled' ) )
 		return true;

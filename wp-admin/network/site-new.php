@@ -90,6 +90,15 @@ if ( isset($_REQUEST['action']) && 'add-site' == $_REQUEST['action'] ) {
 	$password = 'N/A';
 	$user_id = email_exists($email);
 	if ( !$user_id ) { // Create a new user with a random password
+		/**
+		 * Fires before a new user is created via the network site-new.php page.
+		 *
+		 * @since 4.5.0
+		 *
+		 * @param string $email Email of the non-existent user.
+		 */
+		do_action( 'pre_network_site_new_created_user', $email );
+
 		$user_id = username_exists( $domain );
 		if ( $user_id ) {
 			wp_die( __( 'The domain or path entered conflicts with an existing username.' ) );
@@ -175,7 +184,7 @@ if ( ! empty( $messages ) ) {
 			<?php } else {
 				echo $current_site->domain . $current_site->path ?><input name="blog[domain]" type="text" class="regular-text" id="site-address" aria-describedby="site-address-desc"  autocapitalize="none" autocorrect="off" />
 			<?php }
-			echo '<p id="site-address-desc">' . __( 'Only lowercase letters (a-z) and numbers are allowed.' ) . '</p>';
+			echo '<p class="description" id="site-address-desc">' . __( 'Only lowercase letters (a-z), numbers, and hyphens are allowed.' ) . '</p>';
 			?>
 			</td>
 		</tr>
