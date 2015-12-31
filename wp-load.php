@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Bootstrap file for setting the ABSPATH constant
  * and loading the wp-config.php file. The wp-config.php
