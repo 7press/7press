@@ -502,10 +502,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			'delete' => '',
 		);
 
-		// Do not restrict by default
-		$restrict_network_active = false;
-		$restrict_network_only = false;
-
 		if ( 'mustuse' === $context ) {
 			$is_active = true;
 		} elseif ( 'dropins' === $context ) {
@@ -535,8 +531,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$is_active = is_plugin_active_for_network( $plugin_file );
 			} else {
 				$is_active = is_plugin_active( $plugin_file );
-				$restrict_network_active = false;
-				$restrict_network_only = false;
 			}
 
 			if ( $screen->in_admin( 'network' ) ) {
@@ -556,15 +550,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 				}
 			} else {
-				if ( $restrict_network_active ) {
-					$actions = array(
-						'network_active' => __( 'Network Active' ),
-					);
-				} elseif ( $restrict_network_only ) {
-					$actions = array(
-						'network_only' => __( 'Network Only' ),
-					);
-				} elseif ( $is_active ) {
+				if ( $is_active ) {
 					/* translators: %s: plugin name */
 					$actions['deactivate'] = '<a href="' . wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $plugin_file . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( __( 'Deactivate %s' ), $plugin_data['Name'] ) ) . '">' . __( 'Deactivate' ) . '</a>';
 				} else {
@@ -668,7 +654,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$class = $is_active ? 'active' : 'inactive';
 		$checkbox_id =  "checkbox_" . md5($plugin_data['Name']);
-		if ( $restrict_network_active || $restrict_network_only || in_array( $status, array( 'mustuse', 'dropins' ) ) ) {
+		if ( in_array( $status, array( 'mustuse', 'dropins' ) ) ) {
 			$checkbox = '';
 		} else {
 			$checkbox = "<label class='screen-reader-text' for='" . $checkbox_id . "' >" . sprintf( __( 'Select %s' ), $plugin_data['Name'] ) . "</label>"
