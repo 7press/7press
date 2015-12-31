@@ -3267,9 +3267,7 @@ function user_admin_url( $path = '', $scheme = 'admin' ) {
  * @return string Admin url link with optional path appended.
  */
 function self_admin_url($path = '', $scheme = 'admin') {
-	if ( is_network_admin() )
-		return network_admin_url($path, $scheme);
-	elseif ( is_user_admin() )
+	if ( is_user_admin() )
 		return user_admin_url($path, $scheme);
 	else
 		return admin_url($path, $scheme);
@@ -3375,8 +3373,6 @@ function get_edit_profile_url( $user_id = 0, $scheme = 'admin' ) {
 
 	if ( is_user_admin() )
 		$url = user_admin_url( 'profile.php', $scheme );
-	elseif ( is_network_admin() )
-		$url = network_admin_url( 'profile.php', $scheme );
 	else
 		$url = get_dashboard_url( $user_id, 'profile.php', $scheme );
 

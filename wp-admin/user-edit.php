@@ -250,7 +250,7 @@ do_action( 'personal_options', $profileuser );
 		<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr($profileuser->user_login); ?>" disabled="disabled" class="regular-text" /> <span class="description"><?php _e('Usernames cannot be changed.'); ?></span></td>
 	</tr>
 
-<?php if ( !IS_PROFILE_PAGE && !is_network_admin() ) : ?>
+<?php if ( !IS_PROFILE_PAGE ) : ?>
 <tr class="user-role-wrap"><th><label for="role"><?php _e('Role') ?></label></th>
 <td><select name="role" id="role">
 <?php

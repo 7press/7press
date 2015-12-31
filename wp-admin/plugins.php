@@ -34,7 +34,7 @@ if ( $action ) {
 
 			check_admin_referer('activate-plugin_' . $plugin);
 
-			$result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . $plugin), is_network_admin() );
+			$result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . $plugin), false );
 			if ( is_wp_error( $result ) ) {
 				if ( 'unexpected_output' == $result->get_error_code() ) {
 					$redirect = self_admin_url('plugins.php?error=true&charsout=' . strlen($result->get_error_data()) . '&plugin=' . $plugin . "&plugin_status=$status&paged=$page&s=$s");
@@ -45,15 +45,9 @@ if ( $action ) {
 				}
 			}
 
-			if ( ! is_network_admin() ) {
-				$recent = (array) get_option( 'recently_activated' );
-				unset( $recent[ $plugin ] );
-				update_option( 'recently_activated', $recent );
-			} else {
-				$recent = (array) get_site_option( 'recently_activated' );
-				unset( $recent[ $plugin ] );
-				update_site_option( 'recently_activated', $recent );
-			}
+			$recent = (array) get_option( 'recently_activated' );
+			unset( $recent[ $plugin ] );
+			update_option( 'recently_activated', $recent );
 
 			if ( isset($_GET['from']) && 'import' == $_GET['from'] ) {
 				wp_redirect( self_admin_url("import.php?import=" . str_replace('-importer', '', dirname($plugin))) ); // overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix
@@ -82,23 +76,15 @@ if ( $action ) {
 				exit;
 			}
 
-			activate_plugins($plugins, self_admin_url('plugins.php?error=true'), is_network_admin() );
+			activate_plugins($plugins, self_admin_url('plugins.php?error=true'), false );
 
-			if ( ! is_network_admin() ) {
-				$recent = (array) get_option('recently_activated' );
-			} else {
-				$recent = (array) get_site_option('recently_activated' );
-			}
+			$recent = (array) get_option('recently_activated' );
 
 			foreach ( $plugins as $plugin ) {
 				unset( $recent[ $plugin ] );
 			}
 
-			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', $recent );
-			} else {
-				update_site_option( 'recently_activated', $recent );
-			}
+			update_option( 'recently_activated', $recent );
 
 			wp_redirect( self_admin_url("plugins.php?activate-multi=true&plugin_status=$status&paged=$page&s=$s") );
 			exit;
@@ -158,13 +144,9 @@ if ( $action ) {
 
 			check_admin_referer('deactivate-plugin_' . $plugin);
 
-			deactivate_plugins( $plugin, false, is_network_admin() );
+			deactivate_plugins( $plugin, false, false );
 
-			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array( $plugin => time() ) + (array) get_option( 'recently_activated' ) );
-			} else {
-				update_site_option( 'recently_activated', array( $plugin => time() ) + (array) get_site_option( 'recently_activated' ) );
-			}
+			update_option( 'recently_activated', array( $plugin => time() ) + (array) get_option( 'recently_activated' ) );
 
 			if ( headers_sent() )
 				echo "<meta http-equiv='refresh' content='" . esc_attr( "0;url=plugins.php?deactivate=true&plugin_status=$status&paged=$page&s=$s" ) . "' />";
@@ -186,18 +168,14 @@ if ( $action ) {
 				exit;
 			}
 
-			deactivate_plugins( $plugins, false, is_network_admin() );
+			deactivate_plugins( $plugins, false, false );
 
 			$deactivated = array();
 			foreach ( $plugins as $plugin ) {
 				$deactivated[ $plugin ] = time();
 			}
 
-			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', $deactivated + (array) get_option( 'recently_activated' ) );
-			} else {
-				update_site_option( 'recently_activated', $deactivated + (array) get_site_option( 'recently_activated' ) );
-			}
+			update_option( 'recently_activated', $deactivated + (array) get_option( 'recently_activated' ) );
 
 			wp_redirect( self_admin_url("plugins.php?deactivate-multi=true&plugin_status=$status&paged=$page&s=$s") );
 			exit;
@@ -262,15 +240,9 @@ if ( $action ) {
 				?>
 				<?php if ( 1 == $plugins_to_delete ) : ?>
 					<h1><?php _e( 'Delete Plugin' ); ?></h1>
-					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
-						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This plugin may be active on other sites in the network.' ); ?></p></div>
-					<?php endif; ?>
 					<p><?php _e( 'You are about to remove the following plugin:' ); ?></p>
 				<?php else: ?>
 					<h1><?php _e( 'Delete Plugins' ); ?></h1>
-					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
-						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'These plugins may be active on other sites in the network.' ); ?></p></div>
-					<?php endif; ?>
 					<p><?php _e( 'You are about to remove the following plugins:' ); ?></p>
 				<?php endif; ?>
 					<ul class="ul-disc">
@@ -326,11 +298,7 @@ if ( $action ) {
 			exit;
 
 		case 'clear-recent-list':
-			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array() );
-			} else {
-				update_site_option( 'recently_activated', array() );
-			}
+			update_option( 'recently_activated', array() );
 			break;
 	}
 }

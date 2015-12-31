@@ -3257,9 +3257,6 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 function add_thickbox() {
 	wp_enqueue_script( 'thickbox' );
 	wp_enqueue_style( 'thickbox' );
-
-	if ( is_network_admin() )
-		add_action( 'admin_head', '_thickbox_path_admin_subfolder' );
 }
 
 /**

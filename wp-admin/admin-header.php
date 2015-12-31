@@ -33,9 +33,7 @@ if ( empty( $current_screen ) )
 get_admin_page_title();
 $title = esc_html( strip_tags( $title ) );
 
-if ( is_network_admin() )
-	$admin_title = sprintf( __( 'Network Admin: %s' ), esc_html( get_current_site()->site_name ) );
-elseif ( is_user_admin() )
+if ( is_user_admin() )
 	$admin_title = sprintf( __( 'User Dashboard: %s' ), esc_html( get_current_site()->site_name ) );
 else
 	$admin_title = get_bloginfo( 'name' );
@@ -162,9 +160,6 @@ $admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( 
 if ( wp_is_mobile() )
 	$admin_body_class .= ' mobile';
 
-if ( is_network_admin() )
-	$admin_body_class .= ' network-admin';
-
 $admin_body_class .= ' no-customize-support no-svg';
 
 ?>
@@ -224,14 +219,7 @@ $current_screen->set_parentage( $parent_file );
 
 $current_screen->render_screen_meta();
 
-if ( is_network_admin() ) {
-	/**
-	 * Print network admin screen notices.
-	 *
-	 * @since 3.1.0
-	 */
-	do_action( 'network_admin_notices' );
-} elseif ( is_user_admin() ) {
+if ( is_user_admin() ) {
 	/**
 	 * Print user admin screen notices.
 	 *

@@ -286,9 +286,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
 	}
 
-	if ( is_network_admin() ) {
-		$blogname = sprintf( __('Network Admin: %s'), esc_html( get_current_site()->site_name ) );
-	} elseif ( is_user_admin() ) {
+	if ( is_user_admin() ) {
 		$blogname = sprintf( __('User Dashboard: %s'), esc_html( get_current_site()->site_name ) );
 	}
 

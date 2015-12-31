@@ -18,9 +18,7 @@ if ( ! current_user_can('install_themes') )
 $title = __( 'Add Themes' );
 $parent_file = 'themes.php';
 
-if ( ! is_network_admin() ) {
-	$submenu_file = 'themes.php';
-}
+$submenu_file = 'themes.php';
 
 $installed_themes = search_theme_directories();
 foreach ( $installed_themes as $k => $v ) {

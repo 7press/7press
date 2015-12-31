@@ -687,29 +687,6 @@ function is_blog_admin() {
 }
 
 /**
- * Whether the current request is for the network administrative interface.
- *
- * e.g. `/wp-admin/network/`
- *
- * Does not check if the user is an administrator; {@see current_user_can()}
- * for checking roles and capabilities.
- *
- * @since 3.1.0
- *
- * @global WP_Screen $current_screen
- *
- * @return bool True if inside WordPress network administration pages.
- */
-function is_network_admin() {
-	if ( isset( $GLOBALS['current_screen'] ) )
-		return $GLOBALS['current_screen']->in_admin( 'network' );
-	elseif ( defined( 'WP_NETWORK_ADMIN' ) )
-		return WP_NETWORK_ADMIN;
-
-	return false;
-}
-
-/**
  * Whether the current request is for a user admin screen.
  *
  * e.g. `/wp-admin/user/`

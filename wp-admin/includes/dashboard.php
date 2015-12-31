@@ -38,9 +38,6 @@ function wp_dashboard_setup() {
 	if ( is_blog_admin() && current_user_can('edit_posts') )
 		wp_add_dashboard_widget( 'dashboard_right_now', __( 'At a Glance' ), 'wp_dashboard_right_now' );
 
-	if ( is_network_admin() )
-		wp_add_dashboard_widget( 'network_dashboard_right_now', __( 'Right Now' ), 'wp_network_dashboard_right_now' );
-
 	// Activity Widget
 	if ( is_blog_admin() ) {
 		wp_add_dashboard_widget( 'dashboard_activity', __( 'Activity' ), 'wp_dashboard_site_activity' );
@@ -55,24 +52,7 @@ function wp_dashboard_setup() {
 	// WordPress News
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress News' ), 'wp_dashboard_primary' );
 
-	if ( is_network_admin() ) {
-
-		/**
-		 * Fires after core widgets for the Network Admin dashboard have been registered.
-		 *
-		 * @since 3.1.0
-		 */
-		do_action( 'wp_network_dashboard_setup' );
-
-		/**
-		 * Filter the list of widgets to load for the Network Admin dashboard.
-		 *
-		 * @since 3.1.0
-		 *
-		 * @param array $dashboard_widgets An array of dashboard widgets.
-		 */
-		$dashboard_widgets = apply_filters( 'wp_network_dashboard_widgets', array() );
-	} elseif ( is_user_admin() ) {
+	if ( is_user_admin() ) {
 
 		/**
 		 * Fires after core widgets for the User Admin dashboard have been registered.
@@ -293,7 +273,7 @@ function wp_dashboard_right_now() {
 	update_right_now_message();
 
 	// Check if search engines are asked not to index this site.
-	if ( ! is_network_admin() && ! is_user_admin() && current_user_can( 'manage_options' ) && '0' == get_option( 'blog_public' ) ) {
+	if ( ! is_user_admin() && current_user_can( 'manage_options' ) && '0' == get_option( 'blog_public' ) ) {
 
 		/**
 		 * Filter the link title attribute for the 'Search Engines Discouraged'
@@ -1088,7 +1068,7 @@ function wp_dashboard_primary() {
 		)
 	);
 
-	if ( ( is_blog_admin() && current_user_can( 'install_plugins' ) ) || ( is_network_admin() && current_user_can( 'manage_network_plugins' ) && current_user_can( 'install_plugins' ) ) ) {
+	if ( ( is_blog_admin() && current_user_can( 'install_plugins' ) ) || ( current_user_can( 'manage_network_plugins' ) && current_user_can( 'install_plugins' ) ) ) {
 		$feeds['plugins'] = array(
 			'link'         => '',
 			'url'          => array(

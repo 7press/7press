@@ -573,7 +573,7 @@ class WP_Admin_Bar {
 		add_action( 'admin_bar_menu', 'wp_admin_bar_updates_menu', 50 );
 
 		// Content related.
-		if ( ! is_network_admin() && ! is_user_admin() ) {
+		if ( ! is_user_admin() ) {
 			add_action( 'admin_bar_menu', 'wp_admin_bar_comments_menu', 60 );
 			add_action( 'admin_bar_menu', 'wp_admin_bar_new_content_menu', 70 );
 		}

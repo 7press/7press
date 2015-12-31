@@ -670,7 +670,7 @@ function wp_clean_update_cache() {
 	delete_site_transient( 'update_core' );
 }
 
-if ( ( ! is_network_admin() ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 	return;
 }
 

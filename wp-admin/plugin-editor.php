@@ -64,11 +64,7 @@ case 'update':
 			if ( is_plugin_active($file) )
 				deactivate_plugins($file, true);
 
-			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array( $file => time() ) + (array) get_option( 'recently_activated' ) );
-			} else {
-				update_site_option( 'recently_activated', array( $file => time() ) + (array) get_site_option( 'recently_activated' ) );
-			}
+			update_option( 'recently_activated', array( $file => time() ) + (array) get_option( 'recently_activated' ) );
 
 			wp_redirect(add_query_arg('_wpnonce', wp_create_nonce('edit-plugin-test_' . $file), "plugin-editor.php?file=$file&liveupdate=1&scrollto=$scrollto"));
 			exit;
@@ -128,7 +124,7 @@ default:
 		'<p>' . __('The Documentation menu below the editor lists the PHP functions recognized in the plugin file. Clicking Look Up takes you to a web page about that particular function.') . '</p>' .
 		'<p id="newcontent-description">' . __( 'In the editing area the Tab key enters a tab character. To move below this area by pressing Tab, press the Esc key followed by the Tab key. In some cases the Esc key will need to be pressed twice before the Tab key will allow you to continue.' ) . '</p>' .
 		'<p>' . __('If you want to make changes but don&#8217;t want them to be overwritten when the plugin is updated, you may be ready to think about writing your own plugin. For information on how to edit plugins, write your own from scratch, or just better understand their anatomy, check out the links below.') . '</p>' .
-		( is_network_admin() ? '<p>' . __('Any edits to files from this screen will be reflected on all sites in the network.') . '</p>' : '' )
+		'' )
 	) );
 
 	get_current_screen()->set_help_sidebar(
