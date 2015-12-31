@@ -984,7 +984,7 @@ We hope you enjoy your new site. Thanks!
 		'add_new_users' => '0',
 		'upload_space_check_disabled' => '1',
 		'subdomain_install' => intval( $subdomain_install ),
-		'global_terms_enabled' => global_terms_enabled() ? '1' : '0',
+		'global_terms_enabled' => '0',
 		'ms_files_rewriting' => '0',
 		'initial_db_version' => get_option( 'initial_db_version' ),
 		'active_sitewide_plugins' => array(),

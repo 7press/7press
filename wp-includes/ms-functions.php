@@ -1790,60 +1790,7 @@ function global_terms( $term_id, $deprecated = '' ) {
 	global $wpdb;
 	static $global_terms_recurse = null;
 
-	if ( !global_terms_enabled() )
-		return $term_id;
-
-	// prevent a race condition
-	$recurse_start = false;
-	if ( $global_terms_recurse === null ) {
-		$recurse_start = true;
-		$global_terms_recurse = 1;
-	} elseif ( 10 < $global_terms_recurse++ ) {
-		return $term_id;
-	}
-
-	$term_id = intval( $term_id );
-	$c = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms WHERE term_id = %d", $term_id ) );
-
-	$global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE category_nicename = %s", $c->slug ) );
-	if ( $global_id == null ) {
-		$used_global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE cat_ID = %d", $c->term_id ) );
-		if ( null == $used_global_id ) {
-			$wpdb->insert( $wpdb->sitecategories, array( 'cat_ID' => $term_id, 'cat_name' => $c->name, 'category_nicename' => $c->slug ) );
-			$global_id = $wpdb->insert_id;
-			if ( empty( $global_id ) )
-				return $term_id;
-		} else {
-			$max_global_id = $wpdb->get_var( "SELECT MAX(cat_ID) FROM $wpdb->sitecategories" );
-			$max_local_id = $wpdb->get_var( "SELECT MAX(term_id) FROM $wpdb->terms" );
-			$new_global_id = max( $max_global_id, $max_local_id ) + mt_rand( 100, 400 );
-			$wpdb->insert( $wpdb->sitecategories, array( 'cat_ID' => $new_global_id, 'cat_name' => $c->name, 'category_nicename' => $c->slug ) );
-			$global_id = $wpdb->insert_id;
-		}
-	} elseif ( $global_id != $term_id ) {
-		$local_id = $wpdb->get_var( $wpdb->prepare( "SELECT term_id FROM $wpdb->terms WHERE term_id = %d", $global_id ) );
-		if ( null != $local_id ) {
-			global_terms( $local_id );
-			if ( 10 < $global_terms_recurse ) {
-				$global_id = $term_id;
-			}
-		}
-	}
-
-	if ( $global_id != $term_id ) {
-		if ( get_option( 'default_category' ) == $term_id )
-			update_option( 'default_category', $global_id );
-
-		$wpdb->update( $wpdb->terms, array('term_id' => $global_id), array('term_id' => $term_id) );
-		$wpdb->update( $wpdb->term_taxonomy, array('term_id' => $global_id), array('term_id' => $term_id) );
-		$wpdb->update( $wpdb->term_taxonomy, array('parent' => $global_id), array('parent' => $term_id) );
-
-		clean_term_cache($term_id);
-	}
-	if ( $recurse_start )
-		$global_terms_recurse = null;
-
-	return $global_id;
+	return $term_id;
 }
 
 /**

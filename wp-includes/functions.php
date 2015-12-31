@@ -4006,19 +4006,6 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 }
 
 /**
- * Determine whether global terms are enabled.
- *
- * @since 3.0.0
- *
- * @staticvar bool $global_terms
- *
- * @return bool True if multisite and global terms enabled.
- */
-function global_terms_enabled() {
-	return false;
-}
-
-/**
  * gmt_offset modification for smart timezone handling.
  *
  * Overrides the gmt_offset option if we have a timezone_string available.

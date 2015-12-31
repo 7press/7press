@@ -621,13 +621,6 @@ function format_code_lang( $code = '' ) {
  *                      if $taxonomy is 'category' or 'post_tag'.
  */
 function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( $taxonomy == 'category' || $taxonomy == 'post_tag' ) ) {
-		if ( is_object( $term ) ) {
-			$term->slug = sanitize_title( $term->name );
-		} else {
-			$term['slug'] = sanitize_title( $term['name'] );
-		}
-	}
 	return $term;
 }
 
