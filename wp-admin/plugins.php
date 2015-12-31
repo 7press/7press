@@ -70,19 +70,10 @@ if ( $action ) {
 
 			$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
 
-			if ( is_network_admin() ) {
-				foreach ( $plugins as $i => $plugin ) {
-					// Only activate plugins which are not already network activated.
-					if ( is_plugin_active_for_network( $plugin ) ) {
-						unset( $plugins[ $i ] );
-					}
-				}
-			} else {
-				foreach ( $plugins as $i => $plugin ) {
-					// Only activate plugins which are not already active and are not network-only when on Multisite.
-					if ( is_plugin_active( $plugin ) ) {
-						unset( $plugins[ $i ] );
-					}
+			foreach ( $plugins as $i => $plugin ) {
+				// Only activate plugins which are not already active and are not network-only when on Multisite.
+				if ( is_plugin_active( $plugin ) ) {
+					unset( $plugins[ $i ] );
 				}
 			}
 
@@ -167,11 +158,6 @@ if ( $action ) {
 
 			check_admin_referer('deactivate-plugin_' . $plugin);
 
-			if ( ! is_network_admin() && is_plugin_active_for_network( $plugin ) ) {
-				wp_redirect( self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s") );
-				exit;
-			}
-
 			deactivate_plugins( $plugin, false, is_network_admin() );
 
 			if ( ! is_network_admin() ) {
@@ -193,13 +179,8 @@ if ( $action ) {
 			check_admin_referer('bulk-plugins');
 
 			$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
-			// Do not deactivate plugins which are already deactivated.
-			if ( is_network_admin() ) {
-				$plugins = array_filter( $plugins, 'is_plugin_active_for_network' );
-			} else {
-				$plugins = array_filter( $plugins, 'is_plugin_active' );
-				$plugins = array_diff( $plugins, array_filter( $plugins, 'is_plugin_active_for_network' ) );
-			}
+
+			$plugins = array_filter( $plugins, 'is_plugin_active' );
 			if ( empty($plugins) ) {
 				wp_redirect( self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s") );
 				exit;

@@ -190,27 +190,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 
 			// Filter into individual sections
-			if ( ! $screen->in_admin( 'network' ) && is_plugin_active_for_network( $plugin_file ) ) {
-				if ( $show_network_active ) {
-					// On the non-network screen, show network-active plugins if allowed
-					$plugins['active'][ $plugin_file ] = $plugin_data;
-				} else {
-					// On the non-network screen, filter out network-active plugins
-					unset( $plugins['all'][ $plugin_file ] );
-				}
-			} elseif ( ( ! $screen->in_admin( 'network' ) && is_plugin_active( $plugin_file ) )
-				|| ( $screen->in_admin( 'network' ) && is_plugin_active_for_network( $plugin_file ) ) ) {
-				// On the non-network screen, populate the active list with plugins that are individually activated
-				// On the network-admin screen, populate the active list with plugins that are network activated
-				$plugins['active'][ $plugin_file ] = $plugin_data;
-			} else {
-				if ( isset( $recently_activated[ $plugin_file ] ) ) {
-					// Populate the recently activated list with plugins that have been recently activated
-					$plugins['recently_activated'][ $plugin_file ] = $plugin_data;
-				}
-				// Populate the inactive list with plugins that aren't activated
-				$plugins['inactive'][ $plugin_file ] = $plugin_data;
+			if ( isset( $recently_activated[ $plugin_file ] ) ) {
+				// Populate the recently activated list with plugins that have been recently activated
+				$plugins['recently_activated'][ $plugin_file ] = $plugin_data;
 			}
+			// Populate the inactive list with plugins that aren't activated
+			$plugins['inactive'][ $plugin_file ] = $plugin_data;
 		}
 
 		if ( $s ) {
@@ -527,11 +512,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			if ( $plugin_data['Description'] )
 				$description .= '<p>' . $plugin_data['Description'] . '</p>';
 		} else {
-			if ( $screen->in_admin( 'network' ) ) {
-				$is_active = is_plugin_active_for_network( $plugin_file );
-			} else {
-				$is_active = is_plugin_active( $plugin_file );
-			}
+			$is_active = is_plugin_active( $plugin_file );
 
 			if ( $screen->in_admin( 'network' ) ) {
 				if ( $is_active ) {

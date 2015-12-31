@@ -59,8 +59,6 @@ case 'update':
 		fwrite($f, $newcontent);
 		fclose($f);
 
-		$network_wide = is_plugin_active_for_network( $file );
-
 		// Deactivate so we can test it.
 		if ( is_plugin_active($file) || isset($_POST['phperror']) ) {
 			if ( is_plugin_active($file) )
@@ -72,7 +70,7 @@ case 'update':
 				update_site_option( 'recently_activated', array( $file => time() ) + (array) get_site_option( 'recently_activated' ) );
 			}
 
-			wp_redirect(add_query_arg('_wpnonce', wp_create_nonce('edit-plugin-test_' . $file), "plugin-editor.php?file=$file&liveupdate=1&scrollto=$scrollto&networkwide=" . $network_wide));
+			wp_redirect(add_query_arg('_wpnonce', wp_create_nonce('edit-plugin-test_' . $file), "plugin-editor.php?file=$file&liveupdate=1&scrollto=$scrollto"));
 			exit;
 		}
 		wp_redirect( self_admin_url("plugin-editor.php?file=$file&a=te&scrollto=$scrollto") );
@@ -90,7 +88,7 @@ default:
 		if ( is_wp_error($error) )
 			wp_die( $error );
 
-		if ( ( ! empty( $_GET['networkwide'] ) && ! is_plugin_active_for_network($file) ) || ! is_plugin_active($file) )
+		if ( ! is_plugin_active($file) )
 			activate_plugin($file, "plugin-editor.php?file=$file&phperror=1", ! empty( $_GET['networkwide'] ) ); // we'll override this later if the plugin can be included without fatal error
 
 		wp_redirect( self_admin_url("plugin-editor.php?file=$file&a=te&scrollto=$scrollto") );

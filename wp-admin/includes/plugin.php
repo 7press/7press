@@ -425,7 +425,7 @@ function _get_dropins() {
  * @return bool True, if in the active plugins list. False, not in the list.
  */
 function is_plugin_active( $plugin ) {
-	return in_array( $plugin, (array) get_option( 'active_plugins', array() ) ) || is_plugin_active_for_network( $plugin );
+	return in_array( $plugin, (array) get_option( 'active_plugins', array() ) );
 }
 
 /**
@@ -441,18 +441,6 @@ function is_plugin_active( $plugin ) {
  */
 function is_plugin_inactive( $plugin ) {
 	return ! is_plugin_active( $plugin );
-}
-
-/**
- * Check whether the plugin is active for the entire network.
- *
- * @since 3.0.0
- *
- * @param string $plugin Base plugin path from plugins directory.
- * @return bool True, if active for the network, otherwise false.
- */
-function is_plugin_active_for_network( $plugin ) {
-	return false;
 }
 
 /**
@@ -611,7 +599,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 		if ( ! is_plugin_active($plugin) )
 			continue;
 
-		$network_deactivating = false !== $network_wide && is_plugin_active_for_network( $plugin );
+		$network_deactivating = false;
 
 		if ( ! $silent ) {
 			/**
@@ -630,10 +618,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 		}
 
 		if ( false !== $network_wide ) {
-			if ( is_plugin_active_for_network( $plugin ) ) {
-				$do_network = true;
-				unset( $network_current[ $plugin ] );
-			} elseif ( $network_wide ) {
+			if ( $network_wide ) {
 				continue;
 			}
 		}

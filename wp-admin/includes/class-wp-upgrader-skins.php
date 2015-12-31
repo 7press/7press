@@ -213,7 +213,7 @@ class Plugin_Upgrader_Skin extends WP_Upgrader_Skin {
 		$this->plugin = $args['plugin'];
 
 		$this->plugin_active = is_plugin_active( $this->plugin );
-		$this->plugin_network_active = is_plugin_active_for_network( $this->plugin );
+		$this->plugin_network_active = false;
 
 		parent::__construct($args);
 	}
