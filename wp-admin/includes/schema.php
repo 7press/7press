@@ -843,21 +843,6 @@ function populate_roles_300() {
 }
 
 /**
- * Install Network.
- *
- * @since 3.0.0
- *
- */
-if ( !function_exists( 'install_network' ) ) :
-function install_network() {
-	if ( ! defined( 'WP_INSTALLING_NETWORK' ) )
-		define( 'WP_INSTALLING_NETWORK', true );
-
-	dbDelta( wp_get_db_schema( 'global' ) );
-}
-endif;
-
-/**
  * Populate network settings.
  *
  * @since 3.0.0
