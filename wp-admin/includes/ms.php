@@ -96,9 +96,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	}
 
 	// Don't destroy the initial, main, or root blog.
-	if ( $drop && ( 1 == $blog_id || is_main_site( $blog_id ) || ( $blog->path == $current_site->path && $blog->domain == $current_site->domain ) ) ) {
-		$drop = false;
-	}
+	$drop = false;
 
 	$upload_path = trim( get_option( 'upload_path' ) );
 
@@ -773,8 +771,6 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 	if ( $data['post_type'] != 'page' )
 		return $data;
 	if ( !isset( $data['post_name'] ) || $data['post_name'] == '' )
-		return $data;
-	if ( !is_main_site() )
 		return $data;
 
 	$post_name = $data['post_name'];

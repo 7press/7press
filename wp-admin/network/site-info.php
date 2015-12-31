@@ -51,7 +51,6 @@ if ( ! can_edit_network( $details->site_id ) ) {
 }
 
 $parsed_scheme = parse_url( $details->siteurl, PHP_URL_SCHEME );
-$is_main_site = is_main_site( $id );
 
 if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] ) {
 	check_admin_referer( 'edit-site' );
@@ -64,24 +63,9 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] ) {
 	$blog_data = wp_unslash( $_POST['blog'] );
 	$blog_data['scheme'] = $parsed_scheme;
 
-	if ( $is_main_site ) {
-		// On the network's main site, don't allow the domain or path to change.
-		$blog_data['domain'] = $details->domain;
-		$blog_data['path'] = $details->path;
-	} else {
-		// For any other site, the scheme, domain, and path can all be changed. We first
-		// need to ensure a scheme has been provided, otherwise fallback to the existing.
-		$new_url_scheme = parse_url( $blog_data['url'], PHP_URL_SCHEME );
-
-		if ( ! $new_url_scheme ) {
-			$blog_data['url'] = esc_url( $parsed_scheme . '://' . $blog_data['url'] );
-		}
-		$update_parsed_url = parse_url( $blog_data['url'] );
-
-		$blog_data['scheme'] = $update_parsed_url['scheme'];
-		$blog_data['domain'] = $update_parsed_url['host'];
-		$blog_data['path'] = $update_parsed_url['path'];
-	}
+	// On the network's main site, don't allow the domain or path to change.
+	$blog_data['domain'] = $details->domain;
+	$blog_data['path'] = $details->path;
 
 	$existing_details = get_blog_details( $id, false );
 	$blog_data_checkboxes = array( 'public', 'archived', 'spam', 'mature', 'deleted' );
@@ -163,21 +147,10 @@ if ( ! empty( $messages ) ) {
 	<?php wp_nonce_field( 'edit-site' ); ?>
 	<input type="hidden" name="id" value="<?php echo esc_attr( $id ) ?>" />
 	<table class="form-table">
-		<?php
-		// The main site of the network should not be updated on this page.
-		if ( $is_main_site ) : ?>
 		<tr class="form-field">
 			<th scope="row"><?php _e( 'Site URL' ); ?></th>
 			<td><?php echo esc_url( $details->siteurl ); ?></td>
 		</tr>
-		<?php
-		// For any other site, the scheme, domain, and path can all be changed.
-		else : ?>
-		<tr class="form-field form-required">
-			<th scope="row"><?php _e( 'Site URL' ); ?></th>
-			<td><input name="blog[url]" type="text" id="url" value="<?php echo $parsed_scheme . '://' . esc_attr( $details->domain ) . esc_attr( $details->path ); ?>" /></td>
-		</tr>
-		<?php endif; ?>
 
 		<tr class="form-field">
 			<th scope="row"><label for="blog_registered"><?php _ex( 'Registered', 'site' ) ?></label></th>
@@ -189,11 +162,9 @@ if ( ! empty( $messages ) ) {
 		</tr>
 		<?php
 		$attribute_fields = array( 'public' => __( 'Public' ) );
-		if ( ! $is_main_site ) {
-			$attribute_fields['archived'] = __( 'Archived' );
-			$attribute_fields['spam']     = _x( 'Spam', 'site' );
-			$attribute_fields['deleted']  = __( 'Deleted' );
-		}
+		$attribute_fields['archived'] = __( 'Archived' );
+		$attribute_fields['spam']     = _x( 'Spam', 'site' );
+		$attribute_fields['deleted']  = __( 'Deleted' );
 		$attribute_fields['mature'] = __( 'Mature' );
 		?>
 		<tr>

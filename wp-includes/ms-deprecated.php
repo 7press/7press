@@ -144,7 +144,7 @@ function clear_global_post_cache( $post_id ) {
  */
 function is_main_blog() {
 	_deprecated_function( __FUNCTION__, '3.0', 'is_main_site()' );
-	return is_main_site();
+	return true;
 }
 
 /**

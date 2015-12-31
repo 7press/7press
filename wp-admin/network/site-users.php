@@ -10,8 +10,7 @@
 /** Load WordPress Administration Bootstrap */
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( ! is_multisite() )
-	wp_die( __( 'Multisite support is not enabled.' ) );
+wp_die( __( 'Multisite support is not enabled.' ) );
 
 if ( ! current_user_can('manage_sites') )
 	wp_die(__('You do not have sufficient permissions to edit this site.'));
@@ -61,8 +60,6 @@ if ( ! $details ) {
 
 if ( ! can_edit_network( $details->site_id ) )
 	wp_die( __( 'You do not have permission to access this page.' ), 403 );
-
-$is_main_site = is_main_site( $id );
 
 switch_to_blog( $id );
 

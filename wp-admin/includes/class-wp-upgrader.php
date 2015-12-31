@@ -2972,7 +2972,7 @@ class WP_Automatic_Updater {
 		if ( $this->is_disabled() )
 			return;
 
-		if ( ! is_main_network() || ! is_main_site() )
+		if ( ! is_main_network() )
 			return;
 
 		$lock_name = 'auto_updater.lock';

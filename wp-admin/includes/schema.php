@@ -580,7 +580,7 @@ function populate_options() {
 		AND b.option_value < %d";
 	$wpdb->query( $wpdb->prepare( $sql, $wpdb->esc_like( '_transient_' ) . '%', $wpdb->esc_like( '_transient_timeout_' ) . '%', $time ) );
 
-	if ( is_main_site() && is_main_network() ) {
+	if ( is_main_network() ) {
 		$sql = "DELETE a, b FROM $wpdb->options a, $wpdb->options b
 			WHERE a.option_name LIKE %s
 			AND a.option_name NOT LIKE %s

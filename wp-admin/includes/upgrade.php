@@ -2657,11 +2657,6 @@ function wp_should_upgrade_global_tables() {
 		$should_upgrade = false;
 	}
 
-	// Set to false if not on main site of current network (does not matter if not multi-site)
-	if ( ! is_main_site() ) {
-		$should_upgrade = false;
-	}
-
 	/**
 	 * Filter if upgrade routines should be run on global tables.
 	 *

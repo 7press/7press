@@ -1667,11 +1667,7 @@ function get_dirsize( $directory ) {
 
 	// Exclude individual site directories from the total when checking the main site,
 	// as they are subdirectories and should not be counted.
-	if ( is_main_site() ) {
-		$dirsize[ $directory ][ 'size' ] = recurse_dirsize( $directory, $directory . '/sites' );
-	} else {
-		$dirsize[ $directory ][ 'size' ] = recurse_dirsize( $directory );
-	}
+	$dirsize[ $directory ][ 'size' ] = recurse_dirsize( $directory, $directory . '/sites' );
 
 	set_transient( 'dirsize_cache', $dirsize, HOUR_IN_SECONDS );
 	return $dirsize[ $directory ][ 'size' ];
@@ -1927,7 +1923,7 @@ function maybe_redirect_404() {
 	 *
 	 * @param string $no_blog_redirect The redirect URL defined in NOBLOGREDIRECT.
 	 */
-	if ( is_main_site() && is_404() && defined( 'NOBLOGREDIRECT' ) && ( $destination = apply_filters( 'blog_redirect_404', NOBLOGREDIRECT ) ) ) {
+	if ( is_404() && defined( 'NOBLOGREDIRECT' ) && ( $destination = apply_filters( 'blog_redirect_404', NOBLOGREDIRECT ) ) ) {
 		if ( $destination == '%siteurl%' )
 			$destination = network_home_url();
 		wp_redirect( $destination );
@@ -2173,9 +2169,6 @@ function filter_SSL( $url ) {
  * @since 3.1.0
  */
 function wp_schedule_update_network_counts() {
-	if ( !is_main_site() )
-		return;
-
 	if ( ! wp_next_scheduled('update_network_counts') && ! wp_installing() )
 		wp_schedule_event(time(), 'twicedaily', 'update_network_counts');
 }

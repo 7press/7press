@@ -1838,50 +1838,6 @@ function wp_upload_dir( $time = null ) {
 		$url = trailingslashit( $siteurl ) . UPLOADS;
 	}
 
-	// If multisite (and if not the main site in a post-MU network)
-	if ( is_multisite() && ! ( is_main_network() && is_main_site() && defined( 'MULTISITE' ) ) ) {
-
-		if ( ! get_site_option( 'ms_files_rewriting' ) ) {
-			/*
-			 * If ms-files rewriting is disabled (networks created post-3.5), it is fairly
-			 * straightforward: Append sites/%d if we're not on the main site (for post-MU
-			 * networks). (The extra directory prevents a four-digit ID from conflicting with
-			 * a year-based directory for the main site. But if a MU-era network has disabled
-			 * ms-files rewriting manually, they don't need the extra directory, as they never
-			 * had wp-content/uploads for the main site.)
-			 */
-
-			if ( defined( 'MULTISITE' ) )
-				$ms_dir = '/sites/' . get_current_blog_id();
-			else
-				$ms_dir = '/' . get_current_blog_id();
-
-			$dir .= $ms_dir;
-			$url .= $ms_dir;
-
-		} elseif ( defined( 'UPLOADS' ) && ! ms_is_switched() ) {
-			/*
-			 * Handle the old-form ms-files.php rewriting if the network still has that enabled.
-			 * When ms-files rewriting is enabled, then we only listen to UPLOADS when:
-			 * 1) We are not on the main site in a post-MU network, as wp-content/uploads is used
-			 *    there, and
-			 * 2) We are not switched, as ms_upload_constants() hardcodes these constants to reflect
-			 *    the original blog ID.
-			 *
-			 * Rather than UPLOADS, we actually use BLOGUPLOADDIR if it is set, as it is absolute.
-			 * (And it will be set, see ms_upload_constants().) Otherwise, UPLOADS can be used, as
-			 * as it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
-			 * rewriting in multisite, the resulting URL is /files. (#WP22702 for background.)
-			 */
-
-			if ( defined( 'BLOGUPLOADDIR' ) )
-				$dir = untrailingslashit( BLOGUPLOADDIR );
-			else
-				$dir = ABSPATH . UPLOADS;
-			$url = trailingslashit( $siteurl ) . 'files';
-		}
-	}
-
 	$basedir = $dir;
 	$baseurl = $url;
 
@@ -4047,31 +4003,6 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 	$current_suspend = $_wp_suspend_cache_invalidation;
 	$_wp_suspend_cache_invalidation = $suspend;
 	return $current_suspend;
-}
-
-/**
- * Determine whether a site is the main site of the current network.
- *
- * @since 3.0.0
- *
- * @global object $current_site
- *
- * @param int $site_id Optional. Site ID to test. Defaults to current site.
- *                     Defaults to current site.
- * @return bool True if $site_id is the main site of the network, or if not
- *              running Multisite.
- */
-function is_main_site( $site_id = null ) {
-	// This is the current network's information; 'site' is old terminology.
-	global $current_site;
-
-	if ( ! is_multisite() )
-		return true;
-
-	if ( ! $site_id )
-		$site_id = get_current_blog_id();
-
-	return (int) $site_id === (int) $current_site->blog_id;
 }
 
 /**
