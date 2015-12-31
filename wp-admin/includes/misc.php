@@ -194,9 +194,6 @@ function insert_with_markers( $filename, $marker, $insertion ) {
  * @global WP_Rewrite $wp_rewrite
  */
 function save_mod_rewrite_rules() {
-	if ( is_multisite() )
-		return;
-
 	global $wp_rewrite;
 
 	$home_path = get_home_path();
@@ -227,9 +224,6 @@ function save_mod_rewrite_rules() {
  * @return bool True if web.config was updated successfully
  */
 function iis7_save_url_rewrite_rules(){
-	if ( is_multisite() )
-		return;
-
 	global $wp_rewrite;
 
 	$home_path = get_home_path();
@@ -281,11 +275,7 @@ function update_home_siteurl( $old_value, $value ) {
 	if ( wp_installing() )
 		return;
 
-	if ( is_multisite() && ms_is_switched() ) {
-		delete_option( 'rewrite_rules' );
-	} else {
-		flush_rewrite_rules();
-	}
+	flush_rewrite_rules();
 }
 
 

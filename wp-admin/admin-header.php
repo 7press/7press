@@ -162,9 +162,6 @@ $admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( 
 if ( wp_is_mobile() )
 	$admin_body_class .= ' mobile';
 
-if ( is_multisite() )
-	$admin_body_class .= ' multisite';
-
 if ( is_network_admin() )
 	$admin_body_class .= ' network-admin';
 

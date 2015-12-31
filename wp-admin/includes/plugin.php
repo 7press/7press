@@ -413,13 +413,6 @@ function _get_dropins() {
 		'object-cache.php'   => array( __( 'External object cache.'         ), true ), // auto on load
 	);
 
-	if ( is_multisite() ) {
-		$dropins['sunrise.php'       ] = array( __( 'Executed before Multisite is loaded.' ), 'SUNRISE' ); // SUNRISE
-		$dropins['blog-deleted.php'  ] = array( __( 'Custom site deleted message.'   ), true ); // auto on deleted blog
-		$dropins['blog-inactive.php' ] = array( __( 'Custom site inactive message.'  ), true ); // auto on inactive blog
-		$dropins['blog-suspended.php'] = array( __( 'Custom site suspended message.' ), true ); // auto on archived or spammed blog
-	}
-
 	return $dropins;
 }
 
@@ -459,13 +452,6 @@ function is_plugin_inactive( $plugin ) {
  * @return bool True, if active for the network, otherwise false.
  */
 function is_plugin_active_for_network( $plugin ) {
-	if ( !is_multisite() )
-		return false;
-
-	$plugins = get_site_option( 'active_sitewide_plugins');
-	if ( isset($plugins[$plugin]) )
-		return true;
-
 	return false;
 }
 
@@ -518,13 +504,7 @@ function is_network_only_plugin( $plugin ) {
 function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silent = false ) {
 	$plugin = plugin_basename( trim( $plugin ) );
 
-	if ( is_multisite() && ( $network_wide || is_network_only_plugin($plugin) ) ) {
-		$network_wide = true;
-		$current = get_site_option( 'active_sitewide_plugins', array() );
-		$_GET['networkwide'] = 1; // Back compat for plugins looking for this value.
-	} else {
-		$current = get_option( 'active_plugins', array() );
-	}
+	$current = get_option( 'active_plugins', array() );
 
 	$valid = validate_plugin($plugin);
 	if ( is_wp_error($valid) )
@@ -623,8 +603,6 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
  * 	A value of null (the default) will deactivate plugins for both the site and the network.
  */
 function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
-	if ( is_multisite() )
-		$network_current = get_site_option( 'active_sitewide_plugins', array() );
 	$current = get_option( 'active_plugins', array() );
 	$do_blog = $do_network = false;
 
@@ -894,11 +872,6 @@ function validate_active_plugins() {
 	if ( ! is_array( $plugins ) ) {
 		update_option( 'active_plugins', array() );
 		$plugins = array();
-	}
-
-	if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
-		$network_plugins = (array) get_site_option( 'active_sitewide_plugins', array() );
-		$plugins = array_merge( $plugins, array_keys( $network_plugins ) );
 	}
 
 	if ( empty( $plugins ) )

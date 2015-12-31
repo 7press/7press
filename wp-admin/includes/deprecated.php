@@ -228,10 +228,8 @@ function get_author_user_ids() {
 	_deprecated_function( __FUNCTION__, '3.1', 'get_users()' );
 
 	global $wpdb;
-	if ( !is_multisite() )
-		$level_key = $wpdb->get_blog_prefix() . 'user_level';
-	else
-		$level_key = $wpdb->get_blog_prefix() . 'capabilities'; // wpmu site admins don't have user_levels
+
+	$level_key = $wpdb->get_blog_prefix() . 'user_level';
 
 	return $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value != '0'", $level_key) );
 }
@@ -286,10 +284,7 @@ function get_editable_user_ids( $user_id, $exclude_zeros = true, $post_type = 'p
 			return array();
 	}
 
-	if ( !is_multisite() )
-		$level_key = $wpdb->get_blog_prefix() . 'user_level';
-	else
-		$level_key = $wpdb->get_blog_prefix() . 'capabilities'; // wpmu site admins don't have user_levels
+	$level_key = $wpdb->get_blog_prefix() . 'user_level';
 
 	$query = $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s", $level_key);
 	if ( $exclude_zeros )
@@ -308,10 +303,7 @@ function get_nonauthor_user_ids() {
 
 	global $wpdb;
 
-	if ( !is_multisite() )
-		$level_key = $wpdb->get_blog_prefix() . 'user_level';
-	else
-		$level_key = $wpdb->get_blog_prefix() . 'capabilities'; // wpmu site admins don't have user_levels
+	$level_key = $wpdb->get_blog_prefix() . 'user_level';
 
 	return $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value = '0'", $level_key) );
 }
@@ -535,10 +527,6 @@ class WP_User_Search {
 		if ( $this->role ) {
 			$this->query_from .= " INNER JOIN $wpdb->usermeta ON $wpdb->users.ID = $wpdb->usermeta.user_id";
 			$this->query_where .= $wpdb->prepare(" AND $wpdb->usermeta.meta_key = '{$wpdb->prefix}capabilities' AND $wpdb->usermeta.meta_value LIKE %s", '%' . $this->role . '%');
-		} elseif ( is_multisite() ) {
-			$level_key = $wpdb->prefix . 'capabilities'; // wpmu site admins don't have user_levels
-			$this->query_from .= ", $wpdb->usermeta";
-			$this->query_where .= " AND $wpdb->users.ID = $wpdb->usermeta.user_id AND meta_key = '{$level_key}'";
 		}
 
 		do_action_ref_array( 'pre_user_search', array( &$this ) );

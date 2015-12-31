@@ -52,35 +52,6 @@ if ( ! current_user_can( $capability ) ) {
 	);
 }
 
-// Handle admin email change requests
-if ( is_multisite() ) {
-	if ( ! empty($_GET[ 'adminhash' ] ) ) {
-		$new_admin_details = get_option( 'adminhash' );
-		$redirect = 'options-general.php?updated=false';
-		if ( is_array( $new_admin_details ) && $new_admin_details[ 'hash' ] == $_GET[ 'adminhash' ] && !empty($new_admin_details[ 'newemail' ]) ) {
-			update_option( 'admin_email', $new_admin_details[ 'newemail' ] );
-			delete_option( 'adminhash' );
-			delete_option( 'new_admin_email' );
-			$redirect = 'options-general.php?updated=true';
-		}
-		wp_redirect( admin_url( $redirect ) );
-		exit;
-	} elseif ( ! empty( $_GET['dismiss'] ) && 'new_admin_email' == $_GET['dismiss'] ) {
-		delete_option( 'adminhash' );
-		delete_option( 'new_admin_email' );
-		wp_redirect( admin_url( 'options-general.php?updated=true' ) );
-		exit;
-	}
-}
-
-if ( is_multisite() && ! is_super_admin() && 'update' != $action ) {
-	wp_die(
-		'<h1>' . __( 'Cheatin&#8217; uh?' ) . '</h1>' .
-		'<p>' . __( 'You are not allowed to delete these items.' ) . '</p>',
-		403
-	);
-}
-
 $whitelist_options = array(
 	'general' => array( 'blogname', 'blogdescription', 'gmt_offset', 'date_format', 'time_format', 'start_of_week', 'timezone_string', 'WPLANG' ),
 	'discussion' => array( 'default_pingback_flag', 'default_ping_status', 'default_comment_status', 'comments_notify', 'moderation_notify', 'comment_moderation', 'require_name_email', 'comment_whitelist', 'comment_max_links', 'moderation_keys', 'blacklist_keys', 'show_avatars', 'avatar_rating', 'avatar_default', 'close_comments_for_old_posts', 'close_comments_days_old', 'thread_comments', 'thread_comments_depth', 'page_comments', 'comments_per_page', 'default_comments_page', 'comment_order', 'comment_registration' ),
@@ -100,28 +71,25 @@ if ( get_site_option( 'initial_db_version' ) < 32453 ) {
 	$whitelist_options['writing'][] = 'use_balanceTags';
 }
 
-if ( !is_multisite() ) {
-	if ( !defined( 'WP_SITEURL' ) )
-		$whitelist_options['general'][] = 'siteurl';
-	if ( !defined( 'WP_HOME' ) )
-		$whitelist_options['general'][] = 'home';
+if ( !defined( 'WP_SITEURL' ) )
+	$whitelist_options['general'][] = 'siteurl';
+if ( !defined( 'WP_HOME' ) )
+	$whitelist_options['general'][] = 'home';
 
-	$whitelist_options['general'][] = 'admin_email';
-	$whitelist_options['general'][] = 'users_can_register';
-	$whitelist_options['general'][] = 'default_role';
+$whitelist_options['general'][] = 'admin_email';
+$whitelist_options['general'][] = 'users_can_register';
+$whitelist_options['general'][] = 'default_role';
 
-	$whitelist_options['writing'] = array_merge($whitelist_options['writing'], $mail_options);
-	$whitelist_options['writing'][] = 'ping_sites';
+$whitelist_options['writing'] = array_merge($whitelist_options['writing'], $mail_options);
+$whitelist_options['writing'][] = 'ping_sites';
 
-	$whitelist_options['media'][] = 'uploads_use_yearmonth_folders';
+$whitelist_options['media'][] = 'uploads_use_yearmonth_folders';
 
-	// If upload_url_path and upload_path are both default values, they're locked.
-	if ( get_option( 'upload_url_path' ) || ( get_option('upload_path') != 'wp-content/uploads' && get_option('upload_path') ) ) {
-		$whitelist_options['media'][] = 'upload_path';
-		$whitelist_options['media'][] = 'upload_url_path';
-	}
-} else {
-	$whitelist_options['general'][] = 'new_admin_email';
+// If upload_url_path and upload_path are both default values, they're locked.
+if ( get_option( 'upload_url_path' ) || ( get_option('upload_path') != 'wp-content/uploads' && get_option('upload_path') ) ) {
+	$whitelist_options['media'][] = 'upload_path';
+	$whitelist_options['media'][] = 'upload_url_path';
+}
 
 	/**
 	 * Filter whether the post-by-email functionality is enabled.
@@ -159,8 +127,6 @@ if ( 'update' == $action ) {
 		wp_die( __( '<strong>ERROR</strong>: options page not found.' ) );
 
 	if ( 'options' == $option_page ) {
-		if ( is_multisite() && ! is_super_admin() )
-			wp_die( __( 'You do not have sufficient permissions to modify unregistered settings for this site.' ) );
 		$options = explode( ',', wp_unslash( $_POST[ 'page_options' ] ) );
 	} else {
 		$options = $whitelist_options[ $option_page ];
@@ -180,7 +146,7 @@ if ( 'update' == $action ) {
 		}
 
 		// Handle translation install.
-		if ( ! empty( $_POST['WPLANG'] ) && ( ! is_multisite() || is_super_admin() ) ) { // @todo: Skip if already installed
+		if ( ! empty( $_POST['WPLANG'] )) { // @todo: Skip if already installed
 			require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
 
 			if ( wp_can_install_language_pack() ) {

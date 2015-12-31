@@ -152,24 +152,7 @@ function wp_install_defaults( $user_id ) {
 	$now_gmt = current_time( 'mysql', 1 );
 	$first_post_guid = get_option( 'home' ) . '/?p=1';
 
-	if ( is_multisite() ) {
-		$first_post = get_site_option( 'first_post' );
-
-		if ( ! $first_post ) {
-			/* translators: %s: site link */
-			$first_post = __( 'Welcome to %s. This is your first post. Edit or delete it, then start blogging!' );
-		}
-
-		$first_post = sprintf( $first_post,
-			sprintf( '<a href="%s">%s</a>', esc_url( network_home_url() ), get_current_site()->site_name )
-		);
-
-		// Back-compat for pre-4.4
-		$first_post = str_replace( 'SITE_URL', esc_url( network_home_url() ), $first_post );
-		$first_post = str_replace( 'SITE_NAME', get_current_site()->site_name, $first_post );
-	} else {
-		$first_post = __( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' );
-	}
+	$first_post = __( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' );
 
 	$wpdb->insert( $wpdb->posts, array(
 		'post_author' => $user_id,
@@ -195,11 +178,7 @@ function wp_install_defaults( $user_id ) {
 	$first_comment_url = 'https://wordpress.org/';
 	$first_comment = __('Hi, this is a comment.
 To delete a comment, just log in and view the post&#039;s comments. There you will have the option to edit or delete them.');
-	if ( is_multisite() ) {
-		$first_comment_author = get_site_option( 'first_comment_author', $first_comment_author );
-		$first_comment_url = get_site_option( 'first_comment_url', network_home_url() );
-		$first_comment = get_site_option( 'first_comment', $first_comment );
-	}
+
 	$wpdb->insert( $wpdb->comments, array(
 		'comment_post_ID' => 1,
 		'comment_author' => $first_comment_author,
@@ -220,8 +199,6 @@ To delete a comment, just log in and view the post&#039;s comments. There you wi
 <blockquote>The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.</blockquote>
 
 As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to delete this page and create new pages for your content. Have fun!" ), admin_url() );
-	if ( is_multisite() )
-		$first_page = get_site_option( 'first_page', $first_page );
 	$first_post_guid = get_option('home') . '/?page_id=2';
 	$wpdb->insert( $wpdb->posts, array(
 		'post_author' => $user_id,
@@ -252,27 +229,7 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 	update_option( 'widget_meta', array ( 2 => array ( 'title' => '' ), '_multiwidget' => 1 ) );
 	update_option( 'sidebars_widgets', array ( 'wp_inactive_widgets' => array (), 'sidebar-1' => array ( 0 => 'search-2', 1 => 'recent-posts-2', 2 => 'recent-comments-2', 3 => 'archives-2', 4 => 'categories-2', 5 => 'meta-2', ), 'array_version' => 3 ) );
 
-	if ( ! is_multisite() )
-		update_user_meta( $user_id, 'show_welcome_panel', 1 );
-	elseif ( ! is_super_admin( $user_id ) && ! metadata_exists( 'user', $user_id, 'show_welcome_panel' ) )
-		update_user_meta( $user_id, 'show_welcome_panel', 2 );
-
-	if ( is_multisite() ) {
-		// Flush rules to pick up the new page.
-		$wp_rewrite->init();
-		$wp_rewrite->flush_rules();
-
-		$user = new WP_User($user_id);
-		$wpdb->update( $wpdb->options, array('option_value' => $user->user_email), array('option_name' => 'admin_email') );
-
-		// Remove all perms except for the login user.
-		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix.'user_level') );
-		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix.'capabilities') );
-
-		// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.) TODO: Get previous_blog_id.
-		if ( !is_super_admin( $user_id ) && $user_id != 1 )
-			$wpdb->delete( $wpdb->usermeta, array( 'user_id' => $user_id , 'meta_key' => $wpdb->base_prefix.'1_capabilities' ) );
-	}
+	update_user_meta( $user_id, 'show_welcome_panel', 1 );
 }
 endif;
 
@@ -418,16 +375,7 @@ function wp_upgrade() {
 	pre_schema_upgrade();
 	make_db_current_silent();
 	upgrade_all();
-	if ( is_multisite() && is_main_site() )
-		upgrade_network();
 	wp_cache_flush();
-
-	if ( is_multisite() ) {
-		if ( $wpdb->get_row( "SELECT blog_id FROM {$wpdb->blog_versions} WHERE blog_id = '{$wpdb->blogid}'" ) )
-			$wpdb->query( "UPDATE {$wpdb->blog_versions} SET db_version = '{$wp_db_version}' WHERE blog_id = '{$wpdb->blogid}'" );
-		else
-			$wpdb->query( "INSERT INTO {$wpdb->blog_versions} ( `blog_id` , `db_version` , `last_updated` ) VALUES ( '{$wpdb->blogid}', '{$wp_db_version}', NOW());" );
-	}
 
 	/**
 	 * Fires after a site is fully upgraded.
@@ -1228,21 +1176,6 @@ function upgrade_280() {
 
 	if ( $wp_current_db_version < 10360 )
 		populate_roles_280();
-	if ( is_multisite() ) {
-		$start = 0;
-		while( $rows = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options ORDER BY option_id LIMIT $start, 20" ) ) {
-			foreach ( $rows as $row ) {
-				$value = $row->option_value;
-				if ( !@unserialize( $value ) )
-					$value = stripslashes( $value );
-				if ( $value !== $row->option_value ) {
-					update_option( $row->option_name, $value );
-				}
-			}
-			$start += 20;
-		}
-		refresh_blog_details( $wpdb->blogid );
-	}
 }
 
 /**
@@ -1279,9 +1212,6 @@ function upgrade_300() {
 
 	if ( $wp_current_db_version < 15093 )
 		populate_roles_300();
-
-	if ( $wp_current_db_version < 14139 && is_multisite() && is_main_site() && ! defined( 'MULTISITE' ) && get_site_option( 'siteurl' ) === false )
-		add_site_option( 'siteurl', '' );
 
 	// 3.0 screen options key name changes.
 	if ( wp_should_upgrade_global_tables() ) {
@@ -1509,7 +1439,7 @@ function upgrade_380() {
 function upgrade_400() {
 	global $wp_current_db_version;
 	if ( $wp_current_db_version < 29630 ) {
-		if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
+		if ( false === get_option( 'WPLANG' ) ) {
 			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages() ) ) {
 				update_option( 'WPLANG', WPLANG );
 			} else {
@@ -1553,14 +1483,10 @@ function upgrade_430() {
 	}
 
 	if ( $wp_current_db_version < 33055 && 'utf8mb4' === $wpdb->charset ) {
-		if ( is_multisite() ) {
-			$tables = $wpdb->tables( 'blog' );
-		} else {
-			$tables = $wpdb->tables( 'all' );
-			if ( ! wp_should_upgrade_global_tables() ) {
-				$global_tables = $wpdb->tables( 'global' );
-				$tables = array_diff_assoc( $tables, $global_tables );
-			}
+		$tables = $wpdb->tables( 'all' );
+		if ( ! wp_should_upgrade_global_tables() ) {
+			$global_tables = $wpdb->tables( 'global' );
+			$tables = array_diff_assoc( $tables, $global_tables );
 		}
 
 		foreach ( $tables as $table ) {
@@ -2649,26 +2575,9 @@ function pre_schema_upgrade() {
 		$wpdb->query("ALTER TABLE $wpdb->options DROP INDEX option_name");
 	}
 
-	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
-
-		// Upgrade verions prior to 3.7
-		if ( $wp_current_db_version < 25179 ) {
-			// New primary key for signups.
-			$wpdb->query( "ALTER TABLE $wpdb->signups ADD signup_id BIGINT(20) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST" );
-			$wpdb->query( "ALTER TABLE $wpdb->signups DROP INDEX domain" );
-		}
-
-		if ( $wp_current_db_version < 25448 ) {
-			// Convert archived from enum to tinyint.
-			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived varchar(1) NOT NULL default '0'" );
-			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived tinyint(2) NOT NULL default 0" );
-		}
-	}
-
 	// Upgrade versions prior to 4.2.
 	if ( $wp_current_db_version < 31351 ) {
-		if ( ! is_multisite() && wp_should_upgrade_global_tables() ) {
+		if ( wp_should_upgrade_global_tables() ) {
 			$wpdb->query( "ALTER TABLE $wpdb->usermeta DROP INDEX meta_key, ADD INDEX meta_key(meta_key(191))" );
 		}
 		$wpdb->query( "ALTER TABLE $wpdb->terms DROP INDEX slug, ADD INDEX slug(slug(191))" );

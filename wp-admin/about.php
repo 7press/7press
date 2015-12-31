@@ -186,7 +186,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 			<div class="return-to-dashboard">
 				<?php if ( current_user_can( 'update_core' ) && isset( $_GET['updated'] ) ) : ?>
 					<a href="<?php echo esc_url( self_admin_url( 'update-core.php' ) ); ?>">
-						<?php is_multisite() ? _e( 'Return to Updates' ) : _e( 'Return to Dashboard &rarr; Updates' ); ?>
+						<?php _e( 'Return to Dashboard &rarr; Updates' ); ?>
 					</a> |
 				<?php endif; ?>
 				<a href="<?php echo esc_url( self_admin_url() ); ?>"><?php is_blog_admin() ? _e( 'Go to Dashboard &rarr; Home' ) : _e( 'Go to Dashboard' ); ?></a>

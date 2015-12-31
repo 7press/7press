@@ -19,17 +19,6 @@ if ( ! is_super_admin() ) {
 	wp_die( __( 'You do not have sufficient permissions to manage options for this site.' ) );
 }
 
-if ( is_multisite() ) {
-	if ( ! is_network_admin() ) {
-		wp_redirect( network_admin_url( 'setup.php' ) );
-		exit;
-	}
-
-	if ( ! defined( 'MULTISITE' ) ) {
-		wp_die( __( 'The Network creation panel is not for WordPress MU networks.' ) );
-	}
-}
-
 require_once( dirname( __FILE__ ) . '/includes/network.php' );
 
 // We need to create references to ms global tables to enable Network.
@@ -107,8 +96,6 @@ if ( $_POST ) {
 	} else {
 		network_step2();
 	}
-} elseif ( is_multisite() || network_domain_check() ) {
-	network_step2();
 } else {
 	network_step1();
 }

@@ -236,13 +236,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	protected function get_bulk_actions() {
 		$actions = array();
 
-		if ( is_multisite() ) {
-			if ( current_user_can( 'remove_users' ) )
-				$actions['remove'] = __( 'Remove' );
-		} else {
-			if ( current_user_can( 'delete_users' ) )
-				$actions['delete'] = __( 'Delete' );
-		}
+        if ( current_user_can( 'delete_users' ) )
+            $actions['delete'] = __( 'Delete' );
 
 		return $actions;
 	}
@@ -355,8 +350,6 @@ class WP_Users_List_Table extends WP_List_Table {
 			$post_counts = count_many_users_posts( array_keys( $this->items ) );
 
 		foreach ( $this->items as $userid => $user_object ) {
-			if ( is_multisite() && empty( $user_object->allcaps ) )
-				continue;
 
 			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
 		}
@@ -406,10 +399,8 @@ class WP_Users_List_Table extends WP_List_Table {
 				$edit = "<strong>$user_object->user_login</strong><br />";
 			}
 
-			if ( !is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) )
+			if ( get_current_user_id() != $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) )
 				$actions['delete'] = "<a class='submitdelete' href='" . wp_nonce_url( "users.php?action=delete&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Delete' ) . "</a>";
-			if ( is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'remove_user', $user_object->ID ) )
-				$actions['remove'] = "<a class='submitdelete' href='" . wp_nonce_url( $url."action=remove&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Remove' ) . "</a>";
 
 			/**
 			 * Filter the action links displayed under each user in the Users list table.

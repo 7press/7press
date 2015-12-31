@@ -46,9 +46,6 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 	if ( $blog_id && $blog_id != $wpdb->blogid )
 		$old_blog_id = $wpdb->set_blog_id( $blog_id );
 
-	// Engage multisite if in the middle of turning it on from network.php.
-	$is_multisite = is_multisite() || ( defined( 'WP_INSTALLING_NETWORK' ) && WP_INSTALLING_NETWORK );
-
 	/*
 	 * Indexes have a maximum size of 767 bytes. Historically, we haven't need to be concerned about that.
 	 * As of 4.2, however, we moved to utf8mb4, which uses 4 bytes per character. This means that an index which
@@ -238,10 +235,7 @@ CREATE TABLE $wpdb->posts (
 ) $charset_collate;\n";
 
 	// Global tables
-	if ( $is_multisite )
-		$global_tables = $users_multi_table . $usermeta_table;
-	else
-		$global_tables = $users_single_table . $usermeta_table;
+	$global_tables = $users_single_table . $usermeta_table;
 
 	// Multisite global tables.
 	$ms_global_tables = "CREATE TABLE $wpdb->blogs (
@@ -318,8 +312,6 @@ CREATE TABLE $wpdb->signups (
 			break;
 		case 'global' :
 			$queries = $global_tables;
-			if ( $is_multisite )
-				$queries .= $ms_global_tables;
 			break;
 		case 'ms_global' :
 			$queries = $ms_global_tables;
@@ -327,8 +319,6 @@ CREATE TABLE $wpdb->signups (
 		case 'all' :
 		default:
 			$queries = $global_tables . $blog_tables;
-			if ( $is_multisite )
-				$queries .= $ms_global_tables;
 			break;
 	}
 
@@ -521,17 +511,8 @@ function populate_options() {
 	);
 
 	// 3.3
-	if ( ! is_multisite() ) {
-		$options['initial_db_version'] = ! empty( $wp_current_db_version ) && $wp_current_db_version < $wp_db_version
-			? $wp_current_db_version : $wp_db_version;
-	}
-
-	// 3.0 multisite
-	if ( is_multisite() ) {
-		/* translators: blog tagline */
-		$options[ 'blogdescription' ] = sprintf(__('Just another %s site'), get_current_site()->site_name );
-		$options[ 'permalink_structure' ] = '/%year%/%monthnum%/%day%/%postname%/';
-	}
+	$options['initial_db_version'] = ! empty( $wp_current_db_version ) && $wp_current_db_version < $wp_db_version
+		? $wp_current_db_version : $wp_db_version;
 
 	// Set autoload to no for these options
 	$fat_options = array( 'moderation_keys', 'recently_edited', 'blacklist_keys', 'uninstall_plugins' );
@@ -946,17 +927,13 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 	wp_cache_delete( 'networks_have_paths', 'site-options' );
 
-	if ( !is_multisite() ) {
-		$site_admins = array( $site_user->user_login );
-		$users = get_users( array( 'fields' => array( 'ID', 'user_login' ) ) );
-		if ( $users ) {
-			foreach ( $users as $user ) {
-				if ( is_super_admin( $user->ID ) && !in_array( $user->user_login, $site_admins ) )
-					$site_admins[] = $user->user_login;
-			}
+	$site_admins = array( $site_user->user_login );
+	$users = get_users( array( 'fields' => array( 'ID', 'user_login' ) ) );
+	if ( $users ) {
+		foreach ( $users as $user ) {
+			if ( is_super_admin( $user->ID ) && !in_array( $user->user_login, $site_admins ) )
+				$site_admins[] = $user->user_login;
 		}
-	} else {
-		$site_admins = get_site_option( 'site_admins' );
 	}
 
 	/* translators: Do not translate USERNAME, SITE_NAME, BLOG_URL, PASSWORD: those are placeholders. */
@@ -1007,10 +984,10 @@ We hope you enjoy your new site. Thanks!
 		// @todo - network admins should have a method of editing the network siteurl (used for cookie hash)
 		'siteurl' => get_option( 'siteurl' ) . '/',
 		'add_new_users' => '0',
-		'upload_space_check_disabled' => is_multisite() ? get_site_option( 'upload_space_check_disabled' ) : '1',
+		'upload_space_check_disabled' => '1',
 		'subdomain_install' => intval( $subdomain_install ),
 		'global_terms_enabled' => global_terms_enabled() ? '1' : '0',
-		'ms_files_rewriting' => is_multisite() ? get_site_option( 'ms_files_rewriting' ) : '0',
+		'ms_files_rewriting' => '0',
 		'initial_db_version' => get_option( 'initial_db_version' ),
 		'active_sitewide_plugins' => array(),
 		'WPLANG' => get_locale(),
@@ -1044,60 +1021,58 @@ We hope you enjoy your new site. Thanks!
 	 * to create another network in an existing multisite environment, skip
 	 * these steps since the main site of the new network has not yet been
 	 * created.
-	 */
-	if ( ! is_multisite() ) {
-		$current_site = new stdClass;
-		$current_site->domain = $domain;
-		$current_site->path = $path;
-		$current_site->site_name = ucfirst( $domain );
-		$wpdb->insert( $wpdb->blogs, array( 'site_id' => $network_id, 'blog_id' => 1, 'domain' => $domain, 'path' => $path, 'registered' => current_time( 'mysql' ) ) );
-		$current_site->blog_id = $blog_id = $wpdb->insert_id;
-		update_user_meta( $site_user->ID, 'source_domain', $domain );
-		update_user_meta( $site_user->ID, 'primary_blog', $blog_id );
+ */
+	$current_site = new stdClass;
+	$current_site->domain = $domain;
+	$current_site->path = $path;
+	$current_site->site_name = ucfirst( $domain );
+	$wpdb->insert( $wpdb->blogs, array( 'site_id' => $network_id, 'blog_id' => 1, 'domain' => $domain, 'path' => $path, 'registered' => current_time( 'mysql' ) ) );
+	$current_site->blog_id = $blog_id = $wpdb->insert_id;
+	update_user_meta( $site_user->ID, 'source_domain', $domain );
+	update_user_meta( $site_user->ID, 'primary_blog', $blog_id );
 
-		if ( $subdomain_install )
-			$wp_rewrite->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-		else
-			$wp_rewrite->set_permalink_structure( '/blog/%year%/%monthnum%/%day%/%postname%/' );
+	if ( $subdomain_install )
+		$wp_rewrite->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+	else
+		$wp_rewrite->set_permalink_structure( '/blog/%year%/%monthnum%/%day%/%postname%/' );
 
-		flush_rewrite_rules();
+	flush_rewrite_rules();
 
-		if ( ! $subdomain_install )
-			return true;
+	if ( ! $subdomain_install )
+		return true;
 
-		$vhost_ok = false;
-		$errstr = '';
-		$hostname = substr( md5( time() ), 0, 6 ) . '.' . $domain; // Very random hostname!
-		$page = wp_remote_get( 'http://' . $hostname, array( 'timeout' => 5, 'httpversion' => '1.1' ) );
-		if ( is_wp_error( $page ) )
-			$errstr = $page->get_error_message();
-		elseif ( 200 == wp_remote_retrieve_response_code( $page ) )
-				$vhost_ok = true;
+	$vhost_ok = false;
+	$errstr = '';
+	$hostname = substr( md5( time() ), 0, 6 ) . '.' . $domain; // Very random hostname!
+	$page = wp_remote_get( 'http://' . $hostname, array( 'timeout' => 5, 'httpversion' => '1.1' ) );
+	if ( is_wp_error( $page ) )
+		$errstr = $page->get_error_message();
+	elseif ( 200 == wp_remote_retrieve_response_code( $page ) )
+			$vhost_ok = true;
 
-		if ( ! $vhost_ok ) {
-			$msg = '<p><strong>' . __( 'Warning! Wildcard DNS may not be configured correctly!' ) . '</strong></p>';
+	if ( ! $vhost_ok ) {
+		$msg = '<p><strong>' . __( 'Warning! Wildcard DNS may not be configured correctly!' ) . '</strong></p>';
 
-			$msg .= '<p>' . sprintf(
-				/* translators: %s: host name */
-				__( 'The installer attempted to contact a random hostname (%s) on your domain.' ),
-				'<code>' . $hostname . '</code>'
-			);
-			if ( ! empty ( $errstr ) ) {
-				/* translators: %s: error message */
-				$msg .= ' ' . sprintf( __( 'This resulted in an error message: %s' ), '<code>' . $errstr . '</code>' );
-			}
-			$msg .= '</p>';
-
-			$msg .= '<p>' . sprintf(
-				/* translators: %s: asterisk symbol (*) */
-				__( 'To use a subdomain configuration, you must have a wildcard entry in your DNS. This usually means adding a %s hostname record pointing at your web server in your DNS configuration tool.' ),
-				'<code>*</code>'
-			) . '</p>';
-
-			$msg .= '<p>' . __( 'You can still use your site but any subdomain you create may not be accessible. If you know your DNS is correct, ignore this message.' ) . '</p>';
-
-			return new WP_Error( 'no_wildcard_dns', $msg );
+		$msg .= '<p>' . sprintf(
+			/* translators: %s: host name */
+			__( 'The installer attempted to contact a random hostname (%s) on your domain.' ),
+			'<code>' . $hostname . '</code>'
+		);
+		if ( ! empty ( $errstr ) ) {
+			/* translators: %s: error message */
+			$msg .= ' ' . sprintf( __( 'This resulted in an error message: %s' ), '<code>' . $errstr . '</code>' );
 		}
+		$msg .= '</p>';
+
+		$msg .= '<p>' . sprintf(
+			/* translators: %s: asterisk symbol (*) */
+			__( 'To use a subdomain configuration, you must have a wildcard entry in your DNS. This usually means adding a %s hostname record pointing at your web server in your DNS configuration tool.' ),
+			'<code>*</code>'
+		) . '</p>';
+
+		$msg .= '<p>' . __( 'You can still use your site but any subdomain you create may not be accessible. If you know your DNS is correct, ignore this message.' ) . '</p>';
+
+		return new WP_Error( 'no_wildcard_dns', $msg );
 	}
 
 	return true;

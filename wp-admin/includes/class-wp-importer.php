@@ -146,11 +146,6 @@ class WP_Importer {
 			$blog_id = (int) $blog->blog_id;
 		}
 
-		if ( function_exists( 'is_multisite' ) ) {
-			if ( is_multisite() )
-				switch_to_blog( $blog_id );
-		}
-
 		return $blog_id;
 	}
 

@@ -53,7 +53,7 @@ function edit_user( $user_id = 0 ) {
 		$potential_role = isset($wp_roles->role_objects[$new_role]) ? $wp_roles->role_objects[$new_role] : false;
 		// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
 		// Multisite super admins can freely edit their blog roles -- they possess all caps.
-		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || $user_id != get_current_user_id() || ($potential_role && $potential_role->has_cap( 'edit_users' ) ) )
+		if ( $user_id != get_current_user_id() || ($potential_role && $potential_role->has_cap( 'edit_users' ) ) )
 			$user->role = $new_role;
 
 		// If the new role isn't editable by the logged-in user die with error
@@ -361,15 +361,11 @@ function wp_delete_user( $id, $reassign = null ) {
 	}
 
 	// FINALLY, delete user
-	if ( is_multisite() ) {
-		remove_user_from_blog( $id, get_current_blog_id() );
-	} else {
-		$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
-		foreach ( $meta as $mid )
-			delete_metadata_by_mid( 'user', $mid );
+	$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
+	foreach ( $meta as $mid )
+		delete_metadata_by_mid( 'user', $mid );
 
-		$wpdb->delete( $wpdb->users, array( 'ID' => $id ) );
-	}
+	$wpdb->delete( $wpdb->users, array( 'ID' => $id ) );
 
 	clean_user_cache( $user );
 

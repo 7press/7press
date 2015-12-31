@@ -9,8 +9,7 @@
 
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( !is_multisite() )
-	wp_die( __( 'Multisite support is not enabled.' ) );
+wp_die( __( 'Multisite support is not enabled.' ) );
 
 if ( ! current_user_can( 'delete_site' ) )
 	wp_die(__( 'You do not have sufficient permissions to delete this site.'));

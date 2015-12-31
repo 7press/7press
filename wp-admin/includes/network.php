@@ -352,14 +352,8 @@ function network_step2( $errors = false ) {
 		else
 			$subdomain_install = false;
 	} else {
-		if ( is_multisite() ) {
-			$subdomain_install = is_subdomain_install();
-?>
-	<p><?php _e( 'The original configuration steps are shown here for reference.' ); ?></p>
-<?php
-		} else {
-			$subdomain_install = (bool) $wpdb->get_var( "SELECT meta_value FROM $wpdb->sitemeta WHERE site_id = 1 AND meta_key = 'subdomain_install'" );
-?>
+        ?>
+		$subdomain_install = (bool) $wpdb->get_var( "SELECT meta_value FROM $wpdb->sitemeta WHERE site_id = 1 AND meta_key = 'subdomain_install'" );
 	<div class="error"><p><strong><?php _e('Warning:'); ?></strong> <?php _e( 'An existing WordPress network was detected.' ); ?></p></div>
 	<p><?php _e( 'Please complete the configuration steps. To create a new network, you will need to empty or remove the network database tables.' ); ?></p>
 <?php
@@ -370,7 +364,7 @@ function network_step2( $errors = false ) {
 	$subdir_replacement_01 = $subdomain_install ? '' : '$1';
 	$subdir_replacement_12 = $subdomain_install ? '$1' : '$2';
 
-	if ( $_POST || ! is_multisite() ) {
+	if ( $_POST ) {
 ?>
 		<h3><?php esc_html_e( 'Enabling the Network' ); ?></h3>
 		<p><?php _e( 'Complete the following steps to enable the features for creating a network of sites.' ); ?></p>
@@ -408,7 +402,6 @@ function network_step2( $errors = false ) {
 				'<code>' . $location_of_wp_config . '</code>'
 			); ?></p>
 				<textarea class="code" readonly="readonly" cols="100" rows="7">
-define('MULTISITE', true);
 define('SUBDOMAIN_INSTALL', <?php echo $subdomain_install ? 'true' : 'false'; ?>);
 define('DOMAIN_CURRENT_SITE', '<?php echo $hostname; ?>');
 define('PATH_CURRENT_SITE', '<?php echo $base; ?>');
@@ -476,13 +469,6 @@ define('BLOG_ID_CURRENT_SITE', 1);
                     <match url="^index\.php$" ignoreCase="false" />
                     <action type="None" />
                 </rule>';
-				if ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) {
-					$web_config_file .= '
-                <rule name="WordPress Rule for Files" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . 'files/(.+)" ignoreCase="false" />
-                    <action type="Rewrite" url="' . $iis_rewrite_base . WPINC . '/ms-files.php?file={R:1}" appendQueryString="false" />
-                </rule>';
-                }
                 $web_config_file .= '
                 <rule name="WordPress Rule 2" stopProcessing="true">
                     <match url="^' . $iis_subdir_match . 'wp-admin$" ignoreCase="false" />
@@ -532,10 +518,6 @@ define('BLOG_ID_CURRENT_SITE', 1);
 	<?php else : // end iis7_supports_permalinks(). construct an htaccess file instead:
 
 		$ms_files_rewriting = '';
-		if ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) {
-			$ms_files_rewriting = "\n# uploaded files\nRewriteRule ^";
-			$ms_files_rewriting .= $subdir_match . "files/(.+) {$rewrite_base}" . WPINC . "/ms-files.php?file={$subdir_replacement_12} [L]" . "\n";
-		}
 
 		$htaccess_file = <<<EOF
 RewriteEngine On
@@ -571,8 +553,7 @@ EOF;
 
 	<?php endif; // end IIS/Apache code branches.
 
-	if ( !is_multisite() ) { ?>
+?>
 		<p><?php _e( 'Once you complete these steps, your network is enabled and configured. You will have to log in again.' ); ?> <a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log In' ); ?></a></p>
 <?php
-	}
 }

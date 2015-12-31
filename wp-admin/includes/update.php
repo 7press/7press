@@ -217,8 +217,6 @@ function core_update_footer( $msg = '' ) {
  * @return false|void
  */
 function update_nag() {
-	if ( is_multisite() && !current_user_can('update_core') )
-		return false;
 
 	global $pagenow;
 
@@ -328,80 +326,78 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 
 	$wp_list_table = _get_list_table('WP_Plugins_List_Table');
 
-	if ( is_network_admin() || !is_multisite() ) {
-		if ( is_network_admin() ) {
-			$active_class = is_plugin_active_for_network( $file ) ? ' active': '';
-		} else {
-			$active_class = is_plugin_active( $file ) ? ' active' : '';
-		}
-
-		echo '<tr class="plugin-update-tr' . $active_class . '" id="' . esc_attr( $r->slug . '-update' ) . '" data-slug="' . esc_attr( $r->slug ) . '" data-plugin="' . esc_attr( $file ) . '"><td colspan="' . esc_attr( $wp_list_table->get_column_count() ) . '" class="plugin-update colspanchange"><div class="update-message">';
-
-		if ( ! current_user_can( 'update_plugins' ) ) {
-			/* translators: 1: plugin name, 2: details URL, 3: escaped plugin name, 4: version number */
-			printf( __( 'There is a new version of %1$s available. <a href="%2$s" class="thickbox" aria-label="View %3$s version %4$s details">View version %4$s details</a>.' ),
-				$plugin_name,
-				esc_url( $details_url ),
-				esc_attr( $plugin_name ),
-				$r->new_version
-			);
-		} elseif ( empty( $r->package ) ) {
-			/* translators: 1: plugin name, 2: details URL, 3: escaped plugin name, 4: version number */
-			printf( __( 'There is a new version of %1$s available. <a href="%2$s" class="thickbox" aria-label="View %3$s version %4$s details">View version %4$s details</a>. <em>Automatic update is unavailable for this plugin.</em>' ),
-				$plugin_name,
-				esc_url( $details_url ),
-				esc_attr( $plugin_name ),
-				$r->new_version
-			);
-		} else {
-			/* translators: 1: plugin name, 2: details URL, 3: escaped plugin name, 4: version number, 5: update URL */
-			printf( __( 'There is a new version of %1$s available. <a href="%2$s" class="thickbox" aria-label="View %3$s version %4$s details">View version %4$s details</a> or <a href="%5$s" class="update-link" aria-label="update %3$s now">update now</a>.' ),
-				$plugin_name,
-				esc_url( $details_url ),
-				esc_attr( $plugin_name ),
-				$r->new_version,
-				wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' ) . $file, 'upgrade-plugin_' . $file )
-			);
-		}
-		/**
-		 * Fires at the end of the update message container in each
-		 * row of the plugins list table.
-		 *
-		 * The dynamic portion of the hook name, `$file`, refers to the path
-		 * of the plugin's primary file relative to the plugins directory.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param array $plugin_data {
-		 *     An array of plugin metadata.
-		 *
-		 *     @type string $name         The human-readable name of the plugin.
-		 *     @type string $plugin_uri   Plugin URI.
-		 *     @type string $version      Plugin version.
-		 *     @type string $description  Plugin description.
-		 *     @type string $author       Plugin author.
-		 *     @type string $author_uri   Plugin author URI.
-		 *     @type string $text_domain  Plugin text domain.
-		 *     @type string $domain_path  Relative path to the plugin's .mo file(s).
-		 *     @type bool   $network      Whether the plugin can only be activated network wide.
-		 *     @type string $title        The human-readable title of the plugin.
-		 *     @type string $author_name  Plugin author's name.
-		 *     @type bool   $update       Whether there's an available update. Default null.
-	 	 * }
-	 	 * @param array $r {
-	 	 *     An array of metadata about the available plugin update.
-	 	 *
-	 	 *     @type int    $id           Plugin ID.
-	 	 *     @type string $slug         Plugin slug.
-	 	 *     @type string $new_version  New plugin version.
-	 	 *     @type string $url          Plugin URL.
-	 	 *     @type string $package      Plugin update package URL.
-	 	 * }
-		 */
-		do_action( "in_plugin_update_message-{$file}", $plugin_data, $r );
-
-		echo '</div></td></tr>';
+	if ( is_network_admin() ) {
+		$active_class = is_plugin_active_for_network( $file ) ? ' active': '';
+	} else {
+		$active_class = is_plugin_active( $file ) ? ' active' : '';
 	}
+
+	echo '<tr class="plugin-update-tr' . $active_class . '" id="' . esc_attr( $r->slug . '-update' ) . '" data-slug="' . esc_attr( $r->slug ) . '" data-plugin="' . esc_attr( $file ) . '"><td colspan="' . esc_attr( $wp_list_table->get_column_count() ) . '" class="plugin-update colspanchange"><div class="update-message">';
+
+	if ( ! current_user_can( 'update_plugins' ) ) {
+		/* translators: 1: plugin name, 2: details URL, 3: escaped plugin name, 4: version number */
+		printf( __( 'There is a new version of %1$s available. <a href="%2$s" class="thickbox" aria-label="View %3$s version %4$s details">View version %4$s details</a>.' ),
+			$plugin_name,
+			esc_url( $details_url ),
+			esc_attr( $plugin_name ),
+			$r->new_version
+		);
+	} elseif ( empty( $r->package ) ) {
+		/* translators: 1: plugin name, 2: details URL, 3: escaped plugin name, 4: version number */
+		printf( __( 'There is a new version of %1$s available. <a href="%2$s" class="thickbox" aria-label="View %3$s version %4$s details">View version %4$s details</a>. <em>Automatic update is unavailable for this plugin.</em>' ),
+			$plugin_name,
+			esc_url( $details_url ),
+			esc_attr( $plugin_name ),
+			$r->new_version
+		);
+	} else {
+		/* translators: 1: plugin name, 2: details URL, 3: escaped plugin name, 4: version number, 5: update URL */
+		printf( __( 'There is a new version of %1$s available. <a href="%2$s" class="thickbox" aria-label="View %3$s version %4$s details">View version %4$s details</a> or <a href="%5$s" class="update-link" aria-label="update %3$s now">update now</a>.' ),
+			$plugin_name,
+			esc_url( $details_url ),
+			esc_attr( $plugin_name ),
+			$r->new_version,
+			wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' ) . $file, 'upgrade-plugin_' . $file )
+		);
+	}
+	/**
+	 * Fires at the end of the update message container in each
+	 * row of the plugins list table.
+	 *
+	 * The dynamic portion of the hook name, `$file`, refers to the path
+	 * of the plugin's primary file relative to the plugins directory.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param array $plugin_data {
+	 *     An array of plugin metadata.
+	 *
+	 *     @type string $name         The human-readable name of the plugin.
+	 *     @type string $plugin_uri   Plugin URI.
+	 *     @type string $version      Plugin version.
+	 *     @type string $description  Plugin description.
+	 *     @type string $author       Plugin author.
+	 *     @type string $author_uri   Plugin author URI.
+	 *     @type string $text_domain  Plugin text domain.
+	 *     @type string $domain_path  Relative path to the plugin's .mo file(s).
+	 *     @type bool   $network      Whether the plugin can only be activated network wide.
+	 *     @type string $title        The human-readable title of the plugin.
+	 *     @type string $author_name  Plugin author's name.
+	 *     @type bool   $update       Whether there's an available update. Default null.
+	 * }
+	 * @param array $r {
+	 *     An array of metadata about the available plugin update.
+	 *
+	 *     @type int    $id           Plugin ID.
+	 *     @type string $slug         Plugin slug.
+	 *     @type string $new_version  New plugin version.
+	 *     @type string $url          Plugin URL.
+	 *     @type string $package      Plugin update package URL.
+	 * }
+	 */
+	do_action( "in_plugin_update_message-{$file}", $plugin_data, $r );
+
+	echo '</div></td></tr>';
 }
 
 /**

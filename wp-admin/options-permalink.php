@@ -56,16 +56,6 @@ $prefix = $blog_prefix = '';
 if ( ! got_url_rewrite() )
 	$prefix = '/index.php';
 
-/**
- * In a subdirectory configuration of multisite, the `/blog` prefix is used by
- * default on the main site to avoid collisions with other sites created on that
- * network. If the `permalink_structure` option has been changed to remove this
- * base prefix, WordPress core can no longer account for the possible collision.
- */
-if ( is_multisite() && ! is_subdomain_install() && is_main_site() && 0 === strpos( $permalink_structure, '/blog/' ) ) {
-	$blog_prefix = '/blog';
-}
-
 if ( isset($_POST['permalink_structure']) || isset($_POST['category_base']) ) {
 	check_admin_referer('update-permalink');
 
@@ -136,26 +126,22 @@ require( ABSPATH . 'wp-admin/admin-header.php' );
 
 if ( ! empty( $_GET['settings-updated'] ) ) : ?>
 <div id="message" class="updated notice is-dismissible"><p><?php
-if ( ! is_multisite() ) {
-	if ( $iis7_permalinks ) {
-		if ( $permalink_structure && ! $usingpi && ! $writable ) {
-			_e('You should update your web.config now.');
-		} elseif ( $permalink_structure && ! $usingpi && $writable ) {
-			_e('Permalink structure updated. Remove write access on web.config file now!');
-		} else {
-			_e('Permalink structure updated.');
-		}
-	} elseif ( $is_nginx ) {
-		_e('Permalink structure updated.');
+if ( $iis7_permalinks ) {
+	if ( $permalink_structure && ! $usingpi && ! $writable ) {
+		_e('You should update your web.config now.');
+	} elseif ( $permalink_structure && ! $usingpi && $writable ) {
+		_e('Permalink structure updated. Remove write access on web.config file now!');
 	} else {
-		if ( $permalink_structure && ! $usingpi && ! $writable && $update_required ) {
-			_e('You should update your .htaccess now.');
-		} else {
-			_e('Permalink structure updated.');
-		}
+		_e('Permalink structure updated.');
 	}
-} else {
+} elseif ( $is_nginx ) {
 	_e('Permalink structure updated.');
+} else {
+	if ( $permalink_structure && ! $usingpi && ! $writable && $update_required ) {
+		_e('You should update your .htaccess now.');
+	} else {
+		_e('Permalink structure updated.');
+	}
 }
 ?>
 </p></div>
@@ -170,12 +156,6 @@ if ( ! is_multisite() ) {
   <p><?php _e( 'WordPress offers you the ability to create a custom URL structure for your permalinks and archives. Custom URL structures can improve the aesthetics, usability, and forward-compatibility of your links. A <a href="https://codex.wordpress.org/Using_Permalinks">number of tags are available</a>, and here are some examples to get you started.' ); ?></p>
 
 <?php
-if ( is_multisite() && ! is_subdomain_install() && is_main_site() && 0 === strpos( $permalink_structure, '/blog/' ) ) {
-	$permalink_structure = preg_replace( '|^/?blog|', '', $permalink_structure );
-	$category_base = preg_replace( '|^/?blog|', '', $category_base );
-	$tag_base = preg_replace( '|^/?blog|', '', $tag_base );
-}
-
 $structures = array(
 	0 => '',
 	1 => $prefix . '/%year%/%monthnum%/%day%/%postname%/',
@@ -240,7 +220,6 @@ printf( __('If you like, you may enter custom structures for your category and t
 
 <?php submit_button(); ?>
   </form>
-<?php if ( !is_multisite() ) { ?>
 <?php if ( $iis7_permalinks ) :
 	if ( isset($_POST['submit']) && $permalink_structure && ! $usingpi && ! $writable ) :
 		if ( file_exists($home_path . 'web.config') ) : ?>
@@ -270,7 +249,6 @@ printf( __('If you like, you may enter custom structures for your category and t
 </form>
 	<?php endif; ?>
 <?php endif; ?>
-<?php } // multisite ?>
 
 </div>
 

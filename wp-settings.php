@@ -97,14 +97,6 @@ wp_start_object_cache();
 // Attach the default filters.
 require( ABSPATH . WPINC . '/default-filters.php' );
 
-// Initialize multisite if enabled.
-if ( is_multisite() ) {
-	require( ABSPATH . WPINC . '/ms-blogs.php' );
-	require( ABSPATH . WPINC . '/ms-settings.php' );
-} elseif ( ! defined( 'MULTISITE' ) ) {
-	define( 'MULTISITE', false );
-}
-
 register_shutdown_function( 'shutdown_action_hook' );
 
 // Stop most of WordPress from being loaded if we just want the basics.
@@ -193,13 +185,6 @@ require( ABSPATH . WPINC . '/rest-api/class-wp-rest-server.php' );
 require( ABSPATH . WPINC . '/rest-api/class-wp-rest-response.php' );
 require( ABSPATH . WPINC . '/rest-api/class-wp-rest-request.php' );
 
-// Load multisite-specific files.
-if ( is_multisite() ) {
-	require( ABSPATH . WPINC . '/ms-functions.php' );
-	require( ABSPATH . WPINC . '/ms-default-filters.php' );
-	require( ABSPATH . WPINC . '/ms-deprecated.php' );
-}
-
 // Define constants that rely on the API to obtain the default value.
 // Define must-use plugin directory constants, which may be overridden in the sunrise.php drop-in.
 wp_plugin_directory_constants();
@@ -212,24 +197,12 @@ foreach ( wp_get_mu_plugins() as $mu_plugin ) {
 }
 unset( $mu_plugin );
 
-// Load network activated plugins.
-if ( is_multisite() ) {
-	foreach ( wp_get_active_network_plugins() as $network_plugin ) {
-		wp_register_plugin_realpath( $network_plugin );
-		include_once( $network_plugin );
-	}
-	unset( $network_plugin );
-}
-
 /**
  * Fires once all must-use and network-activated plugins have loaded.
  *
  * @since 2.8.0
  */
 do_action( 'muplugins_loaded' );
-
-if ( is_multisite() )
-	ms_cookie_constants(  );
 
 // Define constants after multisite is loaded.
 wp_cookie_constants();
@@ -390,15 +363,6 @@ $GLOBALS['wp']->init();
  * @since 1.5.0
  */
 do_action( 'init' );
-
-// Check site status
-if ( is_multisite() ) {
-	if ( true !== ( $file = ms_site_check() ) ) {
-		require( $file );
-		die();
-	}
-	unset($file);
-}
 
 /**
  * This hook is fired once WP, all plugins, and the theme are fully loaded and instantiated.

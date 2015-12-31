@@ -86,11 +86,7 @@ if ( current_user_can( 'switch_themes' ) ) {
 
 // Help tab: Adding Themes
 if ( current_user_can( 'install_themes' ) ) {
-	if ( is_multisite() ) {
-		$help_install = '<p>' . __('Installing themes on Multisite can only be done from the Network Admin section.') . '</p>';
-	} else {
-		$help_install = '<p>' . sprintf( __('If you would like to see more themes to choose from, click on the &#8220;Add New&#8221; button and you will be able to browse or search for additional themes from the <a href="%s" target="_blank">WordPress.org Theme Directory</a>. Themes in the WordPress.org Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they&#8217;re free!'), 'https://wordpress.org/themes/' ) . '</p>';
-	}
+	$help_install = '<p>' . sprintf( __('If you would like to see more themes to choose from, click on the &#8220;Add New&#8221; button and you will be able to browse or search for additional themes from the <a href="%s" target="_blank">WordPress.org Theme Directory</a>. Themes in the WordPress.org Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they&#8217;re free!'), 'https://wordpress.org/themes/' ) . '</p>';
 
 	get_current_screen()->add_help_tab( array(
 		'id'      => 'adding-themes',
@@ -129,8 +125,8 @@ wp_reset_vars( array( 'theme', 'search' ) );
 wp_localize_script( 'theme', '_wpThemeSettings', array(
 	'themes'   => $themes,
 	'settings' => array(
-		'canInstall'    => ( ! is_multisite() && current_user_can( 'install_themes' ) ),
-		'installURI'    => ( ! is_multisite() && current_user_can( 'install_themes' ) ) ? admin_url( 'theme-install.php' ) : null,
+		'canInstall'    => ( current_user_can( 'install_themes' ) ),
+		'installURI'    => ( current_user_can( 'install_themes' ) ) ? admin_url( 'theme-install.php' ) : null,
 		'confirmDelete' => __( "Are you sure you want to delete this theme?\n\nClick 'Cancel' to go back, 'OK' to confirm the delete." ),
 		'adminUrl'      => parse_url( admin_url(), PHP_URL_PATH ),
 	),
@@ -153,7 +149,7 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 <div class="wrap">
 	<h1><?php esc_html_e( 'Themes' ); ?>
 		<span class="title-count theme-count"><?php echo count( $themes ); ?></span>
-	<?php if ( ! is_multisite() && current_user_can( 'install_themes' ) ) : ?>
+	<?php if ( current_user_can( 'install_themes' ) ) : ?>
 		<a href="<?php echo admin_url( 'theme-install.php' ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html_x( 'Add New', 'Add new theme' ); ?></a>
 	<?php endif; ?>
 	</h1>
@@ -175,7 +171,7 @@ endif;
 
 $ct = wp_get_theme();
 
-if ( $ct->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
+if ( $ct->errors() ) {
 	echo '<div class="error"><p>' . sprintf( __( 'ERROR: %s' ), $ct->errors()->get_error_message() ) . '</p></div>';
 }
 
@@ -291,7 +287,7 @@ foreach ( $themes as $theme ) :
 
 <?php
 // List broken themes, if any.
-if ( ! is_multisite() && current_user_can('edit_themes') && $broken_themes = wp_get_themes( array( 'errors' => true ) ) ) {
+if ( current_user_can('edit_themes') && $broken_themes = wp_get_themes( array( 'errors' => true ) ) ) {
 ?>
 
 <div class="broken-themes">

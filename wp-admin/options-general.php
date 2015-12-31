@@ -25,10 +25,8 @@ add_action('admin_head', 'options_general_add_js');
 $options_help = '<p>' . __('The fields on this screen determine some of the basics of your site setup.') . '</p>' .
 	'<p>' . __('Most themes display the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. The tagline is also displayed by many themes.') . '</p>';
 
-if ( ! is_multisite() ) {
-	$options_help .= '<p>' . __('The WordPress URL and the Site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.') . '</p>' .
-		'<p>' . __('If you want site visitors to be able to register themselves, as opposed to by the site administrator, check the membership box. A default user role can be set for all new users, whether self-registered or registered by the site admin.') . '</p>';
-}
+$options_help .= '<p>' . __('The WordPress URL and the Site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.') . '</p>' .
+	'<p>' . __('If you want site visitors to be able to register themselves, as opposed to by the site administrator, check the membership box. A default user role can be set for all new users, whether self-registered or registered by the site admin.') . '</p>';
 
 $options_help .= '<p>' . __( 'You can set the language, and the translation files will be automatically downloaded and installed (available if your filesystem is writable).' ) . '</p>' .
 	'<p>' . __( 'UTC means Coordinated Universal Time.' ) . '</p>' .
@@ -65,7 +63,6 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 <td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option('blogdescription'); ?>" class="regular-text" />
 <p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ) ?></p></td>
 </tr>
-<?php if ( !is_multisite() ) { ?>
 <tr>
 <th scope="row"><label for="siteurl"><?php _e('WordPress Address (URL)') ?></label></th>
 <td><input name="siteurl" type="url" id="siteurl" value="<?php form_option( 'siteurl' ); ?>"<?php disabled( defined( 'WP_SITEURL' ) ); ?> class="regular-text code<?php if ( defined( 'WP_SITEURL' ) ) echo ' disabled' ?>" /></td>
@@ -95,27 +92,6 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 <select name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
 </td>
 </tr>
-<?php } else { ?>
-<tr>
-<th scope="row"><label for="new_admin_email"><?php _e('Email Address') ?> </label></th>
-<td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr" />
-<p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ) ?></p>
-<?php
-$new_admin_email = get_option( 'new_admin_email' );
-if ( $new_admin_email && $new_admin_email != get_option('admin_email') ) : ?>
-<div class="updated inline">
-<p><?php
-	/* translators: 1: new admin email, 2: Cancel link URL */
-	printf( __( 'There is a pending change of the admin email to %1$s. <a href="%2$s">Cancel</a>' ),
-		'<code>' . esc_html( $new_admin_email ) . '</code>',
-		esc_url( admin_url( 'options.php?dismiss=new_admin_email' ) )
-	);
-?></p>
-</div>
-<?php endif; ?>
-</td>
-</tr>
-<?php } ?>
 <tr>
 <?php
 $current_offset = get_option('gmt_offset');
@@ -304,7 +280,7 @@ endfor;
 <?php
 $languages = get_available_languages();
 $translations = wp_get_available_translations();
-if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages ) ) {
+if ( defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages ) ) {
 	$languages[] = WPLANG;
 }
 if ( ! empty( $languages ) || ! empty( $translations ) ) {
@@ -324,7 +300,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 				'selected'     => $locale,
 				'languages'    => $languages,
 				'translations' => $translations,
-				'show_available_translations' => ( ! is_multisite() || is_super_admin() ) && wp_can_install_language_pack(),
+				'show_available_translations' => wp_can_install_language_pack(),
 			) );
 
 			// Add note about deprecated WPLANG constant.

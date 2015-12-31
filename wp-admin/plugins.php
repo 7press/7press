@@ -32,11 +32,6 @@ if ( $action ) {
 			if ( ! current_user_can('activate_plugins') )
 				wp_die(__('You do not have sufficient permissions to activate plugins for this site.'));
 
-			if ( is_multisite() && ! is_network_admin() && is_network_only_plugin( $plugin ) ) {
-				wp_redirect( self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s") );
-				exit;
-			}
-
 			check_admin_referer('activate-plugin_' . $plugin);
 
 			$result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . $plugin), is_network_admin() );
@@ -85,7 +80,7 @@ if ( $action ) {
 			} else {
 				foreach ( $plugins as $i => $plugin ) {
 					// Only activate plugins which are not already active and are not network-only when on Multisite.
-					if ( is_plugin_active( $plugin ) || ( is_multisite() && is_network_only_plugin( $plugin ) ) ) {
+					if ( is_plugin_active( $plugin ) ) {
 						unset( $plugins[ $i ] );
 					}
 				}
@@ -479,7 +474,7 @@ if ( ! empty( $invalid ) ) {
 
 <div class="wrap">
 <h1><?php echo esc_html( $title );
-if ( ( ! is_multisite() || is_network_admin() ) && current_user_can('install_plugins') ) { ?>
+if ( current_user_can('install_plugins') ) { ?>
  <a href="<?php echo self_admin_url( 'plugin-install.php' ); ?>" class="page-title-action"><?php echo esc_html_x('Add New', 'plugin'); ?></a>
 <?php }
 if ( $s )

@@ -94,13 +94,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = '' ) {
 	 */
 	do_action( 'login_head' );
 
-	if ( is_multisite() ) {
-		$login_header_url   = network_home_url();
-		$login_header_title = get_current_site()->site_name;
-	} else {
-		$login_header_url   = __( 'https://wordpress.org/' );
-		$login_header_title = __( 'Powered by WordPress' );
-	}
+	$login_header_url   = __( 'https://wordpress.org/' );
+	$login_header_title = __( 'Powered by WordPress' );
 
 	/**
 	 * Filter link URL of the header logo above login form.
@@ -326,14 +321,11 @@ function retrieve_password() {
 	$message .= __('To reset your password, visit the following address:') . "\r\n\r\n";
 	$message .= '<' . network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user_login), 'login') . ">\r\n";
 
-	if ( is_multisite() )
-		$blogname = $GLOBALS['current_site']->site_name;
-	else
-		/*
-		 * The blogname option is escaped with esc_html on the way into the database
-		 * in sanitize_option we want to reverse this for the plain text arena of emails.
-		 */
-		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+	/*
+	 * The blogname option is escaped with esc_html on the way into the database
+	 * in sanitize_option we want to reverse this for the plain text arena of emails.
+	 */
+	$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
 
 	$title = sprintf( __('[%s] Password Reset'), $blogname );
 
@@ -670,17 +662,6 @@ login_footer('user_pass');
 break;
 
 case 'register' :
-	if ( is_multisite() ) {
-		/**
-		 * Filter the Multisite sign up URL.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string $sign_up_url The sign up URL.
-		 */
-		wp_redirect( apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) ) );
-		exit;
-	}
 
 	if ( !get_option('users_can_register') ) {
 		wp_redirect( site_url('wp-login.php?registration=disabled') );
@@ -815,11 +796,7 @@ default:
 
 		if ( ( empty( $redirect_to ) || $redirect_to == 'wp-admin/' || $redirect_to == admin_url() ) ) {
 			// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
-			if ( is_multisite() && !get_active_blog_for_user($user->ID) && !is_super_admin( $user->ID ) )
-				$redirect_to = user_admin_url();
-			elseif ( is_multisite() && !$user->has_cap('read') )
-				$redirect_to = get_dashboard_url( $user->ID );
-			elseif ( !$user->has_cap('edit_posts') )
+			if ( !$user->has_cap('edit_posts') )
 				$redirect_to = $user->has_cap( 'read' ) ? admin_url( 'profile.php' ) : home_url();
 		}
 		wp_safe_redirect($redirect_to);

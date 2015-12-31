@@ -163,12 +163,7 @@ function export_wp( $args = array() ) {
 	 * @return string Site URL.
 	 */
 	function wxr_site_url() {
-		// Multisite: the base URL.
-		if ( is_multisite() )
-			return network_home_url();
-		// WordPress (single site): the blog URL.
-		else
-			return get_bloginfo_rss( 'url' );
+		return get_bloginfo_rss( 'url' );
 	}
 
 	/**

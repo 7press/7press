@@ -99,38 +99,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$screen = $this->screen;
 
-		if ( ! is_multisite() || ( $screen->in_admin( 'network' ) && current_user_can( 'manage_network_plugins' ) ) ) {
+		/**
+		 * Filter whether to display the advanced plugins list table.
+		 *
+		 * There are two types of advanced plugins - must-use and drop-ins -
+		 * which can be used in a single site or Multisite network.
+		 *
+		 * The $type parameter allows you to differentiate between the type of advanced
+		 * plugins to filter the display of. Contexts include 'mustuse' and 'dropins'.
+		 *
+		 * @since 3.0.0
+		 *
+		 * @param bool   $show Whether to show the advanced plugins for the specified
+		 *                     plugin type. Default true.
+		 * @param string $type The plugin type. Accepts 'mustuse', 'dropins'.
+		 */
+		if ( apply_filters( 'show_advanced_plugins', true, 'mustuse' ) ) {
+			$plugins['mustuse'] = get_mu_plugins();
+		}
 
-			/**
-			 * Filter whether to display the advanced plugins list table.
-			 *
-			 * There are two types of advanced plugins - must-use and drop-ins -
-			 * which can be used in a single site or Multisite network.
-			 *
-			 * The $type parameter allows you to differentiate between the type of advanced
-			 * plugins to filter the display of. Contexts include 'mustuse' and 'dropins'.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param bool   $show Whether to show the advanced plugins for the specified
-			 *                     plugin type. Default true.
-			 * @param string $type The plugin type. Accepts 'mustuse', 'dropins'.
-			 */
-			if ( apply_filters( 'show_advanced_plugins', true, 'mustuse' ) ) {
-				$plugins['mustuse'] = get_mu_plugins();
-			}
+		/** This action is documented in wp-admin/includes/class-wp-plugins-list-table.php */
+		if ( apply_filters( 'show_advanced_plugins', true, 'dropins' ) )
+			$plugins['dropins'] = get_dropins();
 
-			/** This action is documented in wp-admin/includes/class-wp-plugins-list-table.php */
-			if ( apply_filters( 'show_advanced_plugins', true, 'dropins' ) )
-				$plugins['dropins'] = get_dropins();
-
-			if ( current_user_can( 'update_plugins' ) ) {
-				$current = get_site_transient( 'update_plugins' );
-				foreach ( (array) $plugins['all'] as $plugin_file => $plugin_data ) {
-					if ( isset( $current->response[ $plugin_file ] ) ) {
-						$plugins['all'][ $plugin_file ]['update'] = true;
-						$plugins['upgrade'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
-					}
+		if ( current_user_can( 'update_plugins' ) ) {
+			$current = get_site_transient( 'update_plugins' );
+			foreach ( (array) $plugins['all'] as $plugin_file => $plugin_data ) {
+				if ( isset( $current->response[ $plugin_file ] ) ) {
+					$plugins['all'][ $plugin_file ]['update'] = true;
+					$plugins['upgrade'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
 				}
 			}
 		}
@@ -193,15 +190,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 
 			// Filter into individual sections
-			if ( is_multisite() && ! $screen->in_admin( 'network' ) && is_network_only_plugin( $plugin_file ) && ! is_plugin_active( $plugin_file ) ) {
-				if ( $show_network_active ) {
-					// On the non-network screen, show inactive network-only plugins if allowed
-					$plugins['inactive'][ $plugin_file ] = $plugin_data;
-				} else {
-					// On the non-network screen, filter out network-only plugins as long as they're not individually active
-					unset( $plugins['all'][ $plugin_file ] );
-				}
-			} elseif ( ! $screen->in_admin( 'network' ) && is_plugin_active_for_network( $plugin_file ) ) {
+			if ( ! $screen->in_admin( 'network' ) && is_plugin_active_for_network( $plugin_file ) ) {
 				if ( $show_network_active ) {
 					// On the non-network screen, show network-active plugins if allowed
 					$plugins['active'][ $plugin_file ] = $plugin_data;
@@ -322,7 +311,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			printf( __( 'No plugins found for &#8220;%s&#8221;.' ), $s );
 
 			// We assume that somebody who can install plugins in multisite is experienced enough to not need this helper link.
-			if ( ! is_multisite() && current_user_can( 'install_plugins' ) ) {
+			if ( current_user_can( 'install_plugins' ) ) {
 				echo ' <a href="' . esc_url( admin_url( 'plugin-install.php?tab=search&s=' . urlencode( $s ) ) ) . '">' . __( 'Search for plugins in the WordPress Plugin Directory.' ) . '</a>';
 			}
 		} elseif ( ! empty( $plugins['all'] ) )
@@ -419,12 +408,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		if ( 'inactive' != $status && 'recent' != $status )
 			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Deactivate' ) : __( 'Deactivate' );
 
-		if ( !is_multisite() || $this->screen->in_admin( 'network' ) ) {
-			if ( current_user_can( 'update_plugins' ) )
-				$actions['update-selected'] = __( 'Update' );
-			if ( current_user_can( 'delete_plugins' ) && ( 'active' != $status ) )
-				$actions['delete-selected'] = __( 'Delete' );
-		}
+		if ( current_user_can( 'update_plugins' ) )
+			$actions['update-selected'] = __( 'Update' );
+		if ( current_user_can( 'delete_plugins' ) && ( 'active' != $status ) )
+			$actions['delete-selected'] = __( 'Delete' );
 
 		return $actions;
 	}
@@ -487,9 +474,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	public function display_rows() {
 		global $status;
 
-		if ( is_multisite() && ! $this->screen->in_admin( 'network' ) && in_array( $status, array( 'mustuse', 'dropins' ) ) )
-			return;
-
 		foreach ( $this->items as $plugin_file => $plugin_data )
 			$this->single_row( array( $plugin_file, $plugin_data ) );
 	}
@@ -551,8 +535,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$is_active = is_plugin_active_for_network( $plugin_file );
 			} else {
 				$is_active = is_plugin_active( $plugin_file );
-				$restrict_network_active = ( is_multisite() && is_plugin_active_for_network( $plugin_file ) );
-				$restrict_network_only = ( is_multisite() && is_network_only_plugin( $plugin_file ) && ! $is_active );
+				$restrict_network_active = false;
+				$restrict_network_only = false;
 			}
 
 			if ( $screen->in_admin( 'network' ) ) {
@@ -587,7 +571,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					/* translators: %s: plugin name */
 					$actions['activate'] = '<a href="' . wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $plugin_file . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ) . '" class="edit" aria-label="' . esc_attr( sprintf( __( 'Activate %s' ), $plugin_data['Name'] ) ) . '">' . __( 'Activate' ) . '</a>';
 
-					if ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
+					if ( current_user_can( 'delete_plugins' ) ) {
 						/* translators: %s: plugin name */
 						$actions['delete'] = '<a href="' . wp_nonce_url( 'plugins.php?action=delete-selected&amp;checked[]=' . $plugin_file . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'bulk-plugins' ) . '" class="delete" aria-label="' . esc_attr( sprintf( __( 'Delete %s' ), $plugin_data['Name'] ) ) . '">' . __( 'Delete' ) . '</a>';
 					}
@@ -595,7 +579,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			 } // end if $screen->in_admin( 'network' )
 
-			if ( ( ! is_multisite() || $screen->in_admin( 'network' ) ) && current_user_can( 'edit_plugins' ) && is_writable( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
+			if ( current_user_can( 'edit_plugins' ) && is_writable( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
 				/* translators: %s: plugin name */
 				$actions['edit'] = '<a href="plugin-editor.php?file=' . $plugin_file . '" class="edit" aria-label="' . esc_attr( sprintf( __( 'Edit %s' ), $plugin_data['Name'] ) ) . '">' . __( 'Edit' ) . '</a>';
 			}

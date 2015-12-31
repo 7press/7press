@@ -243,8 +243,7 @@ function wp_ajax_oembed_cache() {
  * @since 3.4.0
  */
 function wp_ajax_autocomplete_user() {
-	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) )
-		wp_die( -1 );
+	wp_die( -1 );
 
 	/** This filter is documented in wp-admin/user-new.php */
 	if ( ! is_super_admin() && ! apply_filters( 'autocomplete_users_for_site_admins', false ) )

@@ -987,7 +987,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		 * - a plugin with an update available is currently active.
 		 * @TODO: For multisite, maintenance mode should only kick in for individual sites if at all possible.
 		 */
-		$maintenance = ( is_multisite() && ! empty( $plugins ) );
+		$maintenance = false;
 		foreach ( $plugins as $plugin )
 			$maintenance = $maintenance || ( is_plugin_active( $plugin ) && isset( $current->response[ $plugin] ) );
 		if ( $maintenance )
@@ -1554,7 +1554,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		// - running Multisite and there are one or more themes specified, OR
 		// - a theme with an update available is currently in use.
 		// @TODO: For multisite, maintenance mode should only kick in for individual sites if at all possible.
-		$maintenance = ( is_multisite() && ! empty( $themes ) );
+		$maintenance = false;
 		foreach ( $themes as $theme )
 			$maintenance = $maintenance || $theme == get_stylesheet() || $theme == get_template();
 		if ( $maintenance )

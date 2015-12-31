@@ -1808,16 +1808,6 @@ function media_upload_form( $errors = null ) {
 
 ?></div>
 <?php
-if ( is_multisite() && !is_upload_space_available() ) {
-	/**
-	 * Fires when an upload will exceed the defined upload space quota for a network site.
-	 *
-	 * @since 3.5.0
-	 */
-	do_action( 'upload_ui_over_quota' );
-	return;
-}
-
 /**
  * Fires just before the legacy (pre-3.5.0) upload interface is loaded.
  *

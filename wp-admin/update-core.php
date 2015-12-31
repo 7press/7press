@@ -14,11 +14,6 @@ wp_enqueue_script( 'plugin-install' );
 wp_enqueue_script( 'updates' );
 add_thickbox();
 
-if ( is_multisite() && ! is_network_admin() ) {
-	wp_redirect( network_admin_url( 'update-core.php' ) );
-	exit();
-}
-
 if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' ) && ! current_user_can( 'update_plugins' ) )
 	wp_die( __( 'You do not have sufficient permissions to update this site.' ) );
 

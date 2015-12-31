@@ -1088,7 +1088,7 @@ function wp_dashboard_primary() {
 		)
 	);
 
-	if ( ( ! is_multisite() && is_blog_admin() && current_user_can( 'install_plugins' ) ) || ( is_network_admin() && current_user_can( 'manage_network_plugins' ) && current_user_can( 'install_plugins' ) ) ) {
+	if ( ( is_blog_admin() && current_user_can( 'install_plugins' ) ) || ( is_network_admin() && current_user_can( 'manage_network_plugins' ) && current_user_can( 'install_plugins' ) ) ) {
 		$feeds['plugins'] = array(
 			'link'         => '',
 			'url'          => array(
@@ -1209,53 +1209,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
  * @return bool|null True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
-	if ( !is_multisite() || !current_user_can( 'upload_files' ) || get_site_option( 'upload_space_check_disabled' ) )
-		return true;
-
-	$quota = get_space_allowed();
-	$used = get_space_used();
-
-	if ( $used > $quota )
-		$percentused = '100';
-	else
-		$percentused = ( $used / $quota ) * 100;
-	$used_class = ( $percentused >= 70 ) ? ' warning' : '';
-	$used = round( $used, 2 );
-	$percentused = number_format( $percentused );
-
-	?>
-	<h3 class="mu-storage"><?php _e( 'Storage Space' ); ?></h3>
-	<div class="mu-storage">
-	<ul>
-		<li class="storage-count">
-			<?php $text = sprintf(
-				/* translators: number of megabytes */
-				__( '%s MB Space Allowed' ),
-				number_format_i18n( $quota )
-			);
-			printf(
-				'<a href="%1$s" title="%2$s">%3$s</a>',
-				esc_url( admin_url( 'upload.php' ) ),
-				__( 'Manage Uploads' ),
-				$text
-			); ?>
-		</li><li class="storage-count <?php echo $used_class; ?>">
-			<?php $text = sprintf(
-				/* translators: 1: number of megabytes, 2: percentage */
-				__( '%1$s MB (%2$s%%) Space Used' ),
-				number_format_i18n( $used, 2 ),
-				$percentused
-			);
-			printf(
-				'<a href="%1$s" title="%2$s" class="musublink">%3$s</a>',
-				esc_url( admin_url( 'upload.php' ) ),
-				__( 'Manage Uploads' ),
-				$text
-			); ?>
-		</li>
-	</ul>
-	</div>
-	<?php
+	return true;
 }
 
 // Display Browser Nag Meta Box

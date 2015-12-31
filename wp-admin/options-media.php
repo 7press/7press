@@ -17,7 +17,7 @@ $parent_file = 'options-general.php';
 
 $media_options_help = '<p>' . __('You can set maximum sizes for images inserted into your written content; you can also insert an image as Full Size.') . '</p>';
 
-if ( ! is_multisite() && ( get_option('upload_url_path') || ( get_option('upload_path') != 'wp-content/uploads' && get_option('upload_path') ) ) ) {
+if (( get_option('upload_url_path') || ( get_option('upload_path') != 'wp-content/uploads' && get_option('upload_path') ) ) ) {
 	$media_options_help .= '<p>' . __('Uploading Files allows you to choose the folder and path for storing your uploaded files.') . '</p>';
 }
 
@@ -95,7 +95,6 @@ if ( isset( $GLOBALS['wp_settings']['media']['embeds'] ) ) : ?>
 </table>
 <?php endif; ?>
 
-<?php if ( !is_multisite() ) : ?>
 <h2 class="title"><?php _e('Uploading Files'); ?></h2>
 <table class="form-table">
 <?php
@@ -130,7 +129,6 @@ if ( get_option('upload_url_path') || ( get_option('upload_path') != 'wp-content
 
 <?php do_settings_fields('media', 'uploads'); ?>
 </table>
-<?php endif; ?>
 
 <?php do_settings_sections('media'); ?>
 
