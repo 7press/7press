@@ -7,4 +7,4 @@
  */
 
 /** Loads the WordPress Environment and Template */
-require( dirname( __FILE__ ) . '/wp-blog-header.php' );
+require __DIR__  . '/wp-blog-header.php';
