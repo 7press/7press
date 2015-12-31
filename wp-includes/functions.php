@@ -4006,30 +4006,6 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 }
 
 /**
- * Determine whether a network is the main network of the Multisite install.
- *
- * @since 3.7.0
- *
- * @param int $network_id Optional. Network ID to test. Defaults to current network.
- * @return bool True if $network_id is the main network, or if not running Multisite.
- */
-function is_main_network( $network_id = null ) {
-	if ( ! is_multisite() ) {
-		return true;
-	}
-
-	$current_network_id = (int) get_current_site()->id;
-
-	if ( null === $network_id ) {
-		$network_id = $current_network_id;
-	}
-
-	$network_id = (int) $network_id;
-
-	return ( $network_id === get_main_network_id() );
-}
-
-/**
  * Get the main network ID.
  *
  * @since 4.3.0
