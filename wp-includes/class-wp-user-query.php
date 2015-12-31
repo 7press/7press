@@ -300,7 +300,7 @@ class WP_User_Query {
 			$role__not_in = (array) $qv['role__not_in'];
 		}
 
-		if ( $blog_id && ( ! empty( $roles ) || ! empty( $role__in ) || ! empty( $role__not_in ) || is_multisite() ) ) {
+		if ( $blog_id && ( ! empty( $roles ) || ! empty( $role__in ) || ! empty( $role__not_in ) ) ) {
 			$role_queries  = array();
 
 			$roles_clauses = array( 'relation' => 'AND' );
@@ -457,8 +457,6 @@ class WP_User_Query {
 					$search_columns = array('user_email');
 				elseif ( is_numeric($search) )
 					$search_columns = array('user_login', 'ID');
-				elseif ( preg_match('|^https?://|', $search) && ! ( is_multisite() && wp_is_large_network( 'users' ) ) )
-					$search_columns = array('user_url');
 				else
 					$search_columns = array('user_login', 'user_url', 'user_email', 'user_nicename', 'display_name');
 			}

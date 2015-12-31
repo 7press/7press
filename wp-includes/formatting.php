@@ -3776,7 +3776,7 @@ function sanitize_option( $option, $value ) {
 
 		case 'WPLANG':
 			$allowed = get_available_languages();
-			if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG ) {
+			if ( defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG ) {
 				$allowed[] = WPLANG;
 			}
 			if ( ! in_array( $value, $allowed ) && ! empty( $value ) ) {

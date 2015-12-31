@@ -2977,7 +2977,7 @@ function wp_plupload_default_settings() {
 			'mobile'    => wp_is_mobile(),
 			'supported' => _device_can_upload(),
 		),
-		'limitExceeded' => is_multisite() && ! is_upload_space_available()
+		'limitExceeded' => false
 	);
 
 	$script = 'var _wpPluploadSettings = ' . wp_json_encode( $settings ) . ';';

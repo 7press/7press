@@ -4714,9 +4714,6 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	$backup_sizes = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
 	$file = get_attached_file( $post_id );
 
-	if ( is_multisite() )
-		delete_transient( 'dirsize_cache' );
-
 	/**
 	 * Fires before an attachment is deleted, at the start of wp_delete_attachment().
 	 *

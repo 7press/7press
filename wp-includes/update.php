@@ -72,18 +72,10 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	else
 		$mysql_version = 'N/A';
 
-	if ( is_multisite() ) {
-		$user_count = get_user_count();
-		$num_blogs = get_blog_count();
-		$wp_install = network_site_url();
-		$multisite_enabled = 1;
-	} else {
-		$user_count = count_users();
-		$user_count = $user_count['total_users'];
-		$multisite_enabled = 0;
-		$num_blogs = 1;
-		$wp_install = home_url( '/' );
-	}
+	$user_count = count_users();
+	$user_count = $user_count['total_users'];
+	$num_blogs = 1;
+	$wp_install = home_url( '/' );
 
 	$query = array(
 		'version'            => $wp_version,
@@ -93,7 +85,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
 		'blogs'              => $num_blogs,
 		'users'              => $user_count,
-		'multisite_enabled'  => $multisite_enabled,
+		'multisite_enabled'  => 0,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
 	);
 

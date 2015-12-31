@@ -2952,13 +2952,7 @@ function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
 
 	$orig_scheme = $scheme;
 
-	if ( empty( $blog_id ) || !is_multisite() ) {
-		$url = get_option( 'home' );
-	} else {
-		switch_to_blog( $blog_id );
-		$url = get_option( 'home' );
-		restore_current_blog();
-	}
+	$url = get_option( 'home' );
 
 	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ) ) ) {
 		if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $pagenow )
@@ -3020,13 +3014,7 @@ function site_url( $path = '', $scheme = null ) {
  * @return string Site url link with optional path appended.
  */
 function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
-	if ( empty( $blog_id ) || !is_multisite() ) {
-		$url = get_option( 'siteurl' );
-	} else {
-		switch_to_blog( $blog_id );
-		$url = get_option( 'siteurl' );
-		restore_current_blog();
-	}
+	$url = get_option( 'siteurl' );
 
 	$url = set_url_scheme( $url, $scheme );
 
@@ -3208,31 +3196,7 @@ function plugins_url( $path = '', $plugin = '' ) {
  * @return string Site url link with optional path appended.
  */
 function network_site_url( $path = '', $scheme = null ) {
-	if ( ! is_multisite() )
-		return site_url($path, $scheme);
-
-	$current_site = get_current_site();
-
-	if ( 'relative' == $scheme )
-		$url = $current_site->path;
-	else
-		$url = set_url_scheme( 'http://' . $current_site->domain . $current_site->path, $scheme );
-
-	if ( $path && is_string( $path ) )
-		$url .= ltrim( $path, '/' );
-
-	/**
-	 * Filter the network site URL.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string      $url    The complete network site URL including scheme and path.
-	 * @param string      $path   Path relative to the network site URL. Blank string if
-	 *                            no path is specified.
-	 * @param string|null $scheme Scheme to give the URL context. Accepts 'http', 'https',
-	 *                            'relative' or null.
-	 */
-	return apply_filters( 'network_site_url', $url, $path, $scheme );
+	return site_url($path, $scheme);
 }
 
 /**
@@ -3250,35 +3214,7 @@ function network_site_url( $path = '', $scheme = null ) {
  * @return string Home url link with optional path appended.
  */
 function network_home_url( $path = '', $scheme = null ) {
-	if ( ! is_multisite() )
-		return home_url($path, $scheme);
-
-	$current_site = get_current_site();
-	$orig_scheme = $scheme;
-
-	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ) ) )
-		$scheme = is_ssl() && ! is_admin() ? 'https' : 'http';
-
-	if ( 'relative' == $scheme )
-		$url = $current_site->path;
-	else
-		$url = set_url_scheme( 'http://' . $current_site->domain . $current_site->path, $scheme );
-
-	if ( $path && is_string( $path ) )
-		$url .= ltrim( $path, '/' );
-
-	/**
-	 * Filter the network home URL.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string      $url         The complete network home URL including scheme and path.
-	 * @param string      $path        Path relative to the network home URL. Blank string
-	 *                                 if no path is specified.
-	 * @param string|null $orig_scheme Scheme to give the URL context. Accepts 'http', 'https',
-	 *                                 'relative' or null.
-	 */
-	return apply_filters( 'network_home_url', $url, $path, $orig_scheme);
+	return home_url($path, $scheme);
 }
 
 /**
@@ -3291,24 +3227,7 @@ function network_home_url( $path = '', $scheme = null ) {
  * @return string Admin url link with optional path appended.
  */
 function network_admin_url( $path = '', $scheme = 'admin' ) {
-	if ( ! is_multisite() )
-		return admin_url( $path, $scheme );
-
-	$url = network_site_url('wp-admin/network/', $scheme);
-
-	if ( $path && is_string( $path ) )
-		$url .= ltrim($path, '/');
-
-	/**
-	 * Filter the network admin URL.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string $url  The complete network admin URL including scheme and path.
-	 * @param string $path Path relative to the network admin URL. Blank string if
-	 *                     no path is specified.
-	 */
-	return apply_filters( 'network_admin_url', $url, $path );
+	return admin_url( $path, $scheme );
 }
 
 /**
@@ -3423,19 +3342,8 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 	$blogs = get_blogs_of_user( $user_id );
 	if ( ! is_super_admin() && empty($blogs) ) {
 		$url = user_admin_url( $path, $scheme );
-	} elseif ( ! is_multisite() ) {
-		$url = admin_url( $path, $scheme );
 	} else {
-		$current_blog = get_current_blog_id();
-		if ( $current_blog  && ( is_super_admin( $user_id ) || in_array( $current_blog, array_keys( $blogs ) ) ) ) {
-			$url = admin_url( $path, $scheme );
-		} else {
-			$active = get_active_blog_for_user( $user_id );
-			if ( $active )
-				$url = get_admin_url( $active->blog_id, $path, $scheme );
-			else
-				$url = user_admin_url( $path, $scheme );
-		}
+		$url = admin_url( $path, $scheme );
 	}
 
 	/**

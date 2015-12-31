@@ -1133,22 +1133,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @return bool Whether the theme is allowed for the network. Returns true in single-site.
 	 */
 	public function is_allowed( $check = 'both', $blog_id = null ) {
-		if ( ! is_multisite() )
-			return true;
-
-		if ( 'both' == $check || 'network' == $check ) {
-			$allowed = self::get_allowed_on_network();
-			if ( ! empty( $allowed[ $this->get_stylesheet() ] ) )
-				return true;
-		}
-
-		if ( 'both' == $check || 'site' == $check ) {
-			$allowed = self::get_allowed_on_site( $blog_id );
-			if ( ! empty( $allowed[ $this->get_stylesheet() ] ) )
-				return true;
-		}
-
-		return false;
+		return true;
 	}
 
 	/**
@@ -1226,8 +1211,7 @@ final class WP_Theme implements ArrayAccess {
 	public static function get_allowed_on_site( $blog_id = null ) {
 		static $allowed_themes = array();
 
-		if ( ! $blog_id || ! is_multisite() )
-			$blog_id = get_current_blog_id();
+		$blog_id = get_current_blog_id();
 
 		if ( isset( $allowed_themes[ $blog_id ] ) )
 			return $allowed_themes[ $blog_id ];

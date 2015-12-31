@@ -50,21 +50,9 @@ function get_locale() {
 		$locale = WPLANG;
 	}
 
-	// If multisite, check options.
-	if ( is_multisite() ) {
-		// Don't check blog option when installing.
-		if ( wp_installing() || ( false === $ms_locale = get_option( 'WPLANG' ) ) ) {
-			$ms_locale = get_site_option( 'WPLANG' );
-		}
-
-		if ( $ms_locale !== false ) {
-			$locale = $ms_locale;
-		}
-	} else {
-		$db_locale = get_option( 'WPLANG' );
-		if ( $db_locale !== false ) {
-			$locale = $db_locale;
-		}
+	$db_locale = get_option( 'WPLANG' );
+	if ( $db_locale !== false ) {
+		$locale = $db_locale;
 	}
 
 	if ( empty( $locale ) ) {
@@ -631,11 +619,6 @@ function load_default_textdomain( $locale = null ) {
 	unload_textdomain( 'default' );
 
 	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo" );
-
-	if ( ( is_multisite() || ( defined( 'WP_INSTALLING_NETWORK' ) && WP_INSTALLING_NETWORK ) ) && ! file_exists(  WP_LANG_DIR . "/admin-$locale.mo" ) ) {
-		load_textdomain( 'default', WP_LANG_DIR . "/ms-$locale.mo" );
-		return $return;
-	}
 
 	if ( is_admin() || wp_installing() || ( defined( 'WP_REPAIRING' ) && WP_REPAIRING ) ) {
 		load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo" );

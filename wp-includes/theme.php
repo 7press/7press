@@ -50,18 +50,6 @@ function wp_get_themes( $args = array() ) {
 	if ( empty( $theme_directories ) )
 		return array();
 
-	if ( is_multisite() && null !== $args['allowed'] ) {
-		$allowed = $args['allowed'];
-		if ( 'network' === $allowed )
-			$theme_directories = array_intersect_key( $theme_directories, WP_Theme::get_allowed_on_network() );
-		elseif ( 'site' === $allowed )
-			$theme_directories = array_intersect_key( $theme_directories, WP_Theme::get_allowed_on_site( $args['blog_id'] ) );
-		elseif ( $allowed )
-			$theme_directories = array_intersect_key( $theme_directories, WP_Theme::get_allowed( $args['blog_id'] ) );
-		else
-			$theme_directories = array_diff_key( $theme_directories, WP_Theme::get_allowed( $args['blog_id'] ) );
-	}
-
 	$themes = array();
 	static $_themes = array();
 

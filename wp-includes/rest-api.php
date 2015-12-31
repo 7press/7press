@@ -212,16 +212,11 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 		$path = '/';
 	}
 
-	if ( is_multisite() && get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) {
-		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
-		$url .= '/' . ltrim( $path, '/' );
-	} else {
-		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
+	$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 
-		$path = '/' . ltrim( $path, '/' );
+	$path = '/' . ltrim( $path, '/' );
 
-		$url = add_query_arg( 'rest_route', $path, $url );
-	}
+	$url = add_query_arg( 'rest_route', $path, $url );
 
 	if ( is_ssl() ) {
 		// If the current host is the same as the REST URL host, force the REST URL scheme to HTTPS.

@@ -31,7 +31,7 @@ require( ABSPATH . WPINC . '/version.php' );
 
 /**
  * If not already configured, `$blog_id` will default to 1 in a single site
- * configuration. In multisite, it will be overridden by default in ms-settings.php.
+ * configuration.
  *
  * @global int $blog_id
  * @since 2.0.0
@@ -204,7 +204,6 @@ unset( $mu_plugin );
  */
 do_action( 'muplugins_loaded' );
 
-// Define constants after multisite is loaded.
 wp_cookie_constants();
 
 // Define and enforce our SSL constants

@@ -335,15 +335,6 @@ class WP_Object_Cache {
 	private $blog_prefix;
 
 	/**
-	 * Holds the value of is_multisite().
-	 *
-	 * @since 3.5.0
-	 * @access private
-	 * @var bool
-	 */
-	private $multisite;
-
-	/**
 	 * Makes private properties readable for backwards compatibility.
 	 *
 	 * @since 4.0.0
@@ -419,8 +410,6 @@ class WP_Object_Cache {
 			$group = 'default';
 
 		$id = $key;
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$id = $this->blog_prefix . $key;
 
 		if ( $this->_exists( $id, $group ) )
 			return false;
@@ -458,9 +447,6 @@ class WP_Object_Cache {
 		if ( empty( $group ) )
 			$group = 'default';
 
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$key = $this->blog_prefix . $key;
-
 		if ( ! $this->_exists( $key, $group ) )
 			return false;
 
@@ -493,9 +479,6 @@ class WP_Object_Cache {
 	public function delete( $key, $group = 'default', $deprecated = false ) {
 		if ( empty( $group ) )
 			$group = 'default';
-
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$key = $this->blog_prefix . $key;
 
 		if ( ! $this->_exists( $key, $group ) )
 			return false;
@@ -542,9 +525,6 @@ class WP_Object_Cache {
 		if ( empty( $group ) )
 			$group = 'default';
 
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$key = $this->blog_prefix . $key;
-
 		if ( $this->_exists( $key, $group ) ) {
 			$found = true;
 			$this->cache_hits += 1;
@@ -573,9 +553,6 @@ class WP_Object_Cache {
 	public function incr( $key, $offset = 1, $group = 'default' ) {
 		if ( empty( $group ) )
 			$group = 'default';
-
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$key = $this->blog_prefix . $key;
 
 		if ( ! $this->_exists( $key, $group ) )
 			return false;
@@ -612,8 +589,6 @@ class WP_Object_Cache {
 			$group = 'default';
 
 		$id = $key;
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$id = $this->blog_prefix . $key;
 
 		if ( ! $this->_exists( $id, $group ) )
 			return false;
@@ -665,9 +640,6 @@ class WP_Object_Cache {
 		if ( empty( $group ) )
 			$group = 'default';
 
-		if ( $this->multisite && ! isset( $this->global_groups[ $group ] ) )
-			$key = $this->blog_prefix . $key;
-
 		if ( is_object( $data ) )
 			$data = clone $data;
 
@@ -708,7 +680,7 @@ class WP_Object_Cache {
 	 */
 	public function switch_to_blog( $blog_id ) {
 		$blog_id = (int) $blog_id;
-		$this->blog_prefix = $this->multisite ? $blog_id . ':' : '';
+		$this->blog_prefix = '';
 	}
 
 	/**
@@ -735,8 +707,7 @@ class WP_Object_Cache {
 	public function __construct() {
 		global $blog_id;
 
-		$this->multisite = is_multisite();
-		$this->blog_prefix =  $this->multisite ? $blog_id . ':' : '';
+		$this->blog_prefix =  '';
 
 
 		/**

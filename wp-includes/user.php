@@ -221,20 +221,6 @@ function wp_authenticate_cookie($user, $username, $password) {
  * @return WP_User|WP_Error WP_User on success, WP_Error if the user is considered a spammer.
  */
 function wp_authenticate_spam_check( $user ) {
-	if ( $user instanceof WP_User && is_multisite() ) {
-		/**
-		 * Filter whether the user has been marked as a spammer.
-		 *
-		 * @since 3.7.0
-		 *
-		 * @param bool    $spammed Whether the user is considered a spammer.
-		 * @param WP_User $user    User to check against.
-		 */
-		$spammed = apply_filters( 'check_is_user_spammed', is_user_spammy(), $user );
-
-		if ( $spammed )
-			return new WP_Error( 'spammer_account', __( '<strong>ERROR</strong>: Your account has been marked as a spammer.' ) );
-	}
 	return $user;
 }
 
@@ -510,20 +496,18 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	if ( empty( $keys ) )
 		return array();
 
-	if ( ! is_multisite() ) {
-		$blog_id = get_current_blog_id();
-		$blogs = array( $blog_id => new stdClass );
-		$blogs[ $blog_id ]->userblog_id = $blog_id;
-		$blogs[ $blog_id ]->blogname = get_option('blogname');
-		$blogs[ $blog_id ]->domain = '';
-		$blogs[ $blog_id ]->path = '';
-		$blogs[ $blog_id ]->site_id = 1;
-		$blogs[ $blog_id ]->siteurl = get_option('siteurl');
-		$blogs[ $blog_id ]->archived = 0;
-		$blogs[ $blog_id ]->spam = 0;
-		$blogs[ $blog_id ]->deleted = 0;
-		return $blogs;
-	}
+	$blog_id = get_current_blog_id();
+	$blogs = array( $blog_id => new stdClass );
+	$blogs[ $blog_id ]->userblog_id = $blog_id;
+	$blogs[ $blog_id ]->blogname = get_option('blogname');
+	$blogs[ $blog_id ]->domain = '';
+	$blogs[ $blog_id ]->path = '';
+	$blogs[ $blog_id ]->site_id = 1;
+	$blogs[ $blog_id ]->siteurl = get_option('siteurl');
+	$blogs[ $blog_id ]->archived = 0;
+	$blogs[ $blog_id ]->spam = 0;
+	$blogs[ $blog_id ]->deleted = 0;
+	return $blogs;
 
 	$blogs = array();
 
@@ -618,38 +602,7 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		}
 	}
 
-	if ( ! is_multisite() ) {
-		return true;
-	}
-
-	if ( empty( $blog_id ) ) {
-		$blog_id = get_current_blog_id();
-	}
-
-	$blog = get_blog_details( $blog_id );
-
-	if ( ! $blog || ! isset( $blog->domain ) || $blog->archived || $blog->spam || $blog->deleted ) {
-		return false;
-	}
-
-	$keys = get_user_meta( $user_id );
-	if ( empty( $keys ) ) {
-		return false;
-	}
-
-	// no underscore before capabilities in $base_capabilities_key
-	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
-	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
-
-	if ( isset( $keys[ $base_capabilities_key ] ) && $blog_id == 1 ) {
-		return true;
-	}
-
-	if ( isset( $keys[ $site_capabilities_key ] ) ) {
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 /**
@@ -805,10 +758,6 @@ function count_users($strategy = 'time') {
 
 		$result['total_users'] = count( $users_of_blog );
 		$result['avail_roles'] =& $avail_roles;
-	}
-
-	if ( is_multisite() ) {
-		$result['avail_roles']['none'] = 0;
 	}
 
 	return $result;
@@ -2316,10 +2265,6 @@ function wp_destroy_all_sessions() {
  */
 function wp_get_users_with_no_role() {
 	global $wpdb;
-
-	if ( is_multisite() ) {
-		return array();
-	}
 
 	$prefix = $wpdb->get_blog_prefix();
 	$regex  = implode( '|', wp_roles()->get_names() );

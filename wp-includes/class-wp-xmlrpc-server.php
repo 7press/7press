@@ -578,11 +578,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - 'xmlrpc' - url of xmlrpc endpoint
 	 */
 	public function wp_getUsersBlogs( $args ) {
-		// If this isn't on WPMU then just use blogger_getUsersBlogs
-		if ( !is_multisite() ) {
-			array_unshift( $args, 1 );
-			return $this->blogger_getUsersBlogs( $args );
-		}
+		array_unshift( $args, 1 );
+		return $this->blogger_getUsersBlogs( $args );
 
 		$this->escape( $args );
 
@@ -4300,9 +4297,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return array|IXR_Error
 	 */
 	public function blogger_getUsersBlogs($args) {
-		if ( is_multisite() )
-			return $this->_multisite_getUsersBlogs($args);
-
 		$this->escape($args);
 
 		$username = $args[1];
@@ -4325,44 +4319,6 @@ class wp_xmlrpc_server extends IXR_Server {
 		);
 
 		return array($struct);
-	}
-
-	/**
-	 * Private function for retrieving a users blogs for multisite setups
-	 *
-	 * @since 3.0.0
-	 * @access protected
-	 *
-	 * @param array $args {
-	 *     Method arguments. Note: arguments must be ordered as documented.
-	 *
-	 *     @type string $username Username.
-	 *     @type string $password Password.
-	 * }
-	 * @return array|IXR_Error
-	 */
-	protected function _multisite_getUsersBlogs( $args ) {
-		$current_blog = get_blog_details();
-
-		$domain = $current_blog->domain;
-		$path = $current_blog->path . 'xmlrpc.php';
-
-		$rpc = new IXR_Client( set_url_scheme( "http://{$domain}{$path}" ) );
-		$rpc->query('wp.getUsersBlogs', $args[1], $args[2]);
-		$blogs = $rpc->getResponse();
-
-		if ( isset($blogs['faultCode']) )
-			return new IXR_Error($blogs['faultCode'], $blogs['faultString']);
-
-		if ( $_SERVER['HTTP_HOST'] == $domain && $_SERVER['REQUEST_URI'] == $path ) {
-			return $blogs;
-		} else {
-			foreach ( (array) $blogs as $blog ) {
-				if ( strpos($blog['url'], $_SERVER['HTTP_HOST']) )
-					return array($blog);
-			}
-			return array();
-		}
 	}
 
 	/**
@@ -5767,11 +5723,6 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( !current_user_can('upload_files') ) {
 			$this->error = new IXR_Error( 401, __( 'You do not have permission to upload files.' ) );
-			return $this->error;
-		}
-
-		if ( is_multisite() && upload_is_user_over_quota( false ) ) {
-			$this->error = new IXR_Error( 401, __( 'Sorry, you have used your space allocation.' ) );
 			return $this->error;
 		}
 

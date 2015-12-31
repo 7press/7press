@@ -720,13 +720,6 @@ class WP_User {
 		$args = array_merge( array( $cap, $this->ID ), $args );
 		$caps = call_user_func_array( 'map_meta_cap', $args );
 
-		// Multisite super admin has all caps by definition, Unless specifically denied.
-		if ( is_multisite() && is_super_admin( $this->ID ) ) {
-			if ( in_array('do_not_allow', $caps) )
-				return false;
-			return true;
-		}
-
 		/**
 		 * Dynamically filter a user's capabilities.
 		 *

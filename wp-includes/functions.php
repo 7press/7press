@@ -1833,7 +1833,7 @@ function wp_upload_dir( $time = null ) {
 	 * Honor the value of UPLOADS. This happens as long as ms-files rewriting is disabled.
 	 * We also sometimes obey UPLOADS when rewriting is enabled -- see the next block.
 	 */
-	if ( defined( 'UPLOADS' ) && ! ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) ) {
+	if ( defined( 'UPLOADS' ) ) {
 		$dir = ABSPATH . UPLOADS;
 		$url = trailingslashit( $siteurl ) . UPLOADS;
 	}
@@ -4017,32 +4017,7 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 function get_main_network_id() {
 	global $wpdb;
 
-	if ( ! is_multisite() ) {
-		return 1;
-	}
-
-	if ( defined( 'PRIMARY_NETWORK_ID' ) ) {
-		$main_network_id = PRIMARY_NETWORK_ID;
-	} elseif ( 1 === (int) get_current_site()->id ) {
-		// If the current network has an ID of 1, assume it is the main network.
-		$main_network_id = 1;
-	} else {
-		$main_network_id = wp_cache_get( 'primary_network_id', 'site-options' );
-
-		if ( false === $main_network_id ) {
-			$main_network_id = (int) $wpdb->get_var( "SELECT id FROM {$wpdb->site} ORDER BY id LIMIT 1" );
-			wp_cache_add( 'primary_network_id', $main_network_id, 'site-options' );
-		}
-	}
-
-	/**
-	 * Filter the main network ID.
-	 *
-	 * @since 4.3.0
-	 *
-	 * @param int $main_network_id The ID of the main network.
-	 */
-	return (int) apply_filters( 'get_main_network_id', $main_network_id );
+	return 1;
 }
 
 /**
@@ -4055,29 +4030,7 @@ function get_main_network_id() {
  * @return bool True if multisite and global terms enabled.
  */
 function global_terms_enabled() {
-	if ( ! is_multisite() )
-		return false;
-
-	static $global_terms = null;
-	if ( is_null( $global_terms ) ) {
-
-		/**
-		 * Filter whether global terms are enabled.
-		 *
-		 * Passing a non-null value to the filter will effectively short-circuit the function,
-		 * returning the value of the 'global_terms_enabled' site option instead.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param null $enabled Whether global terms are enabled.
-		 */
-		$filter = apply_filters( 'global_terms_enabled', null );
-		if ( ! is_null( $filter ) )
-			$global_terms = (bool) $filter;
-		else
-			$global_terms = (bool) get_site_option( 'global_terms_enabled', false );
-	}
-	return $global_terms;
+	return false;
 }
 
 /**

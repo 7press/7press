@@ -734,14 +734,7 @@ class wpdb {
 	 * @since 3.1.0
 	 */
 	public function init_charset() {
-		if ( function_exists('is_multisite') && is_multisite() ) {
-			$this->charset = 'utf8';
-			if ( defined( 'DB_COLLATE' ) && DB_COLLATE ) {
-				$this->collate = DB_COLLATE;
-			} else {
-				$this->collate = 'utf8_general_ci';
-			}
-		} elseif ( defined( 'DB_COLLATE' ) ) {
+		if ( defined( 'DB_COLLATE' ) ) {
 			$this->collate = DB_COLLATE;
 		}
 
@@ -878,7 +871,7 @@ class wpdb {
 		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) )
 			return new WP_Error('invalid_db_prefix', 'Invalid database prefix' );
 
-		$old_prefix = is_multisite() ? '' : $prefix;
+		$old_prefix = $prefix;
 
 		if ( isset( $this->base_prefix ) )
 			$old_prefix = $this->base_prefix;
@@ -888,9 +881,6 @@ class wpdb {
 		if ( $set_table_names ) {
 			foreach ( $this->tables( 'global' ) as $table => $prefixed_table )
 				$this->$table = $prefixed_table;
-
-			if ( is_multisite() && empty( $this->blogid ) )
-				return $old_prefix;
 
 			$this->prefix = $this->get_blog_prefix();
 
@@ -939,17 +929,7 @@ class wpdb {
 	 * @return string Blog prefix.
 	 */
 	public function get_blog_prefix( $blog_id = null ) {
-		if ( is_multisite() ) {
-			if ( null === $blog_id )
-				$blog_id = $this->blogid;
-			$blog_id = (int) $blog_id;
-			if ( defined( 'MULTISITE' ) && ( 0 == $blog_id || 1 == $blog_id ) )
-				return $this->base_prefix;
-			else
-				return $this->base_prefix . $blog_id . '_';
-		} else {
-			return $this->base_prefix;
-		}
+		return $this->base_prefix;
 	}
 
 	/**
@@ -983,16 +963,12 @@ class wpdb {
 		switch ( $scope ) {
 			case 'all' :
 				$tables = array_merge( $this->global_tables, $this->tables );
-				if ( is_multisite() )
-					$tables = array_merge( $tables, $this->ms_global_tables );
 				break;
 			case 'blog' :
 				$tables = $this->tables;
 				break;
 			case 'global' :
 				$tables = $this->global_tables;
-				if ( is_multisite() )
-					$tables = array_merge( $tables, $this->ms_global_tables );
 				break;
 			case 'ms_global' :
 				$tables = $this->ms_global_tables;
@@ -1328,32 +1304,15 @@ class wpdb {
 		if ( ! $this->show_errors )
 			return false;
 
-		// If there is an error then take note of it
-		if ( is_multisite() ) {
-			$msg = sprintf(
-				"%s [%s]\n%s\n",
-				__( 'WordPress database error:' ),
-				$str,
-				$this->last_query
-			);
+		$str   = htmlspecialchars( $str, ENT_QUOTES );
+		$query = htmlspecialchars( $this->last_query, ENT_QUOTES );
 
-			if ( defined( 'ERRORLOGFILE' ) ) {
-				error_log( $msg, 3, ERRORLOGFILE );
-			}
-			if ( defined( 'DIEONDBERROR' ) ) {
-				wp_die( $msg );
-			}
-		} else {
-			$str   = htmlspecialchars( $str, ENT_QUOTES );
-			$query = htmlspecialchars( $this->last_query, ENT_QUOTES );
-
-			printf(
-				'<div id="error"><p class="wpdberror"><strong>%s</strong> [%s]<br /><code>%s</code></p></div>',
-				__( 'WordPress database error:' ),
-				$str,
-				$query
-			);
-		}
+		printf(
+			'<div id="error"><p class="wpdberror"><strong>%s</strong> [%s]<br /><code>%s</code></p></div>',
+			__( 'WordPress database error:' ),
+			$str,
+			$query
+		);
 	}
 
 	/**
