@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Loads the WordPress environment and template.
  *
