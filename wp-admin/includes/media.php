@@ -2666,15 +2666,6 @@ function media_upload_max_image_resize() {
 }
 
 /**
- * Displays the out of storage quota message in Multisite.
- *
- * @since 3.5.0
- */
-function multisite_over_quota_message() {
-	echo '<p>' . sprintf( __( 'Sorry, you have used all of your storage quota of %s MB.' ), get_space_allowed() ) . '</p>';
-}
-
-/**
  * Displays the image and editor in the post editor
  *
  * @since 3.5.0
